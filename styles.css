@@ -1,29 +1,82 @@
 #webpilot-sidebar {
   position: fixed;
   top: 0;
-  left: 0;
+  right: -380px;
   width: 380px;
-  height: 500px;
+  height: 100vh;
   background: #ffffff;
-  border: 1px solid #e1e5e9;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border-left: 1px solid #e1e5e9;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
   z-index: 10000;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  display: none;
   overflow: hidden;
-  animation: webpilot-slide-in 0.3s ease-out;
+  transition: right 0.3s ease-out;
 }
 
-@keyframes webpilot-slide-in {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
+#webpilot-sidebar.webpilot-sidebar-open {
+  right: 0;
+}
+
+/* Body adjustment when sidebar is open */
+body.webpilot-sidebar-active {
+  margin-right: 380px;
+  transition: margin-right 0.3s ease-out;
+}
+
+/* Remove the old animation as we're using transitions now */
+
+/* Optimized transitions for better performance */
+body {
+  transition: margin-right 0.3s ease-out;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+  #webpilot-sidebar {
+    width: 320px;
+    right: -320px;
   }
-  to {
-    opacity: 1;
-    transform: translateX(0);
+
+  body.webpilot-sidebar-active {
+    margin-right: 320px;
   }
+}
+
+@media (max-width: 480px) {
+  #webpilot-sidebar {
+    width: 100vw;
+    right: -100vw;
+  }
+
+  body.webpilot-sidebar-active {
+    margin-right: 100vw;
+  }
+}
+
+/* Sidebar overlay for very small screens */
+@media (max-width: 380px) {
+  body.webpilot-sidebar-active {
+    margin-right: 0;
+    overflow: hidden;
+  }
+
+  #webpilot-sidebar {
+    box-shadow: -2px 0 20px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Smooth transitions for page content */
+* {
+  transition: margin-right 0.3s ease-out;
+}
+
+/* Prevent transition on non-relevant elements */
+*:not(body) {
+  transition: none;
+}
+
+body {
+  transition: margin-right 0.3s ease-out;
 }
 
 .webpilot-header {
@@ -69,7 +122,7 @@
 }
 
 .webpilot-content {
-  height: calc(100% - 48px);
+  height: calc(100vh - 48px);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -481,16 +534,6 @@
   background: #004085;
 }
 
-/* Responsive design */
-@media (max-width: 768px) {
-  #webpilot-sidebar {
-    width: 320px;
-    left: 10px !important;
-    right: 10px !important;
-    width: calc(100vw - 20px) !important;
-  }
-}
-
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
   #webpilot-sidebar {
@@ -498,109 +541,108 @@
     border-color: #4a5568;
     color: #e2e8f0;
   }
-  
-  .webpilot-context-section,
-  .webpilot-tab-context-section {
+
+  .webpilot-context-section .webpilot-tab-context-section {
     background: #4a5568;
     border-color: #718096;
   }
-  
+
   .webpilot-context-header,
   .webpilot-tab-context-header {
     color: #e2e8f0;
   }
-  
+
   .webpilot-context-header:hover,
   .webpilot-tab-context-header:hover {
     background: #718096;
   }
-  
+
   .webpilot-context-info,
   .webpilot-tab-context-content {
     background: #2d3748;
     border-color: #718096;
   }
-  
+
   .context-item strong {
     color: #e2e8f0;
   }
-  
+
   .context-item span {
     color: #a0aec0;
   }
-  
+
   #webpilot-tab-selector {
     background: #2d3748;
     border-color: #718096;
     color: #e2e8f0;
   }
-  
+
   #webpilot-tab-selector:focus {
     border-color: #63b3ed;
     box-shadow: 0 0 0 2px rgba(99, 179, 237, 0.25);
   }
-  
+
   .webpilot-load-context-btn,
   .webpilot-clear-context-btn {
     background: #2d3748;
     border-color: #718096;
     color: #e2e8f0;
   }
-  
+
   .webpilot-load-context-btn:hover {
     background: #63b3ed;
     color: white;
     border-color: #63b3ed;
   }
-  
+
   .webpilot-tab-context-display {
     background: #4a5568;
     border-color: #718096;
   }
-  
+
   .webpilot-suggestion {
     background: #4a5568;
     border-color: #718096;
     color: #e2e8f0;
   }
-  
+
   .webpilot-suggestion:hover {
     background: #718096;
     border-color: #a0aec0;
   }
-  
+
   .webpilot-actions {
     background: #4a5568;
     border-color: #718096;
   }
-  
+
   .webpilot-action {
     background: #2d3748;
     border-color: #718096;
     color: #e2e8f0;
   }
-  
+
   .webpilot-action:hover {
     background: #718096;
     border-color: #a0aec0;
   }
-  
+
   .assistant-message .message-content {
     background: #4a5568;
     color: #e2e8f0;
   }
-  
+
   .webpilot-chat-input {
     background: #4a5568;
     border-color: #718096;
   }
-  
+
   #webpilot-chat-input {
     background: #2d3748;
     border-color: #718096;
     color: #e2e8f0;
   }
-  
+
   #webpilot-chat-input:focus {
     border-color: #63b3ed;
     box-shadow: 0 0 0 2px rgba(99, 179, 237, 0.25);
@@ -632,4 +674,123 @@
 .webpilot-suggestions::-webkit-scrollbar-thumb:hover,
 .webpilot-chat-messages::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
-} 
+}
+
+/* General message styles */
+.webpilot-general-message {
+  padding: 20px;
+  text-align: left;
+}
+
+.webpilot-general-message h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  color: #333;
+  font-weight: 600;
+}
+
+.webpilot-general-message p {
+  margin: 0 0 16px 0;
+  color: #666;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.webpilot-general-message ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #666;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.webpilot-general-message li {
+  margin-bottom: 8px;
+}
+
+.webpilot-general-message li:last-child {
+  margin-bottom: 0;
+}
+
+/* Settings Section Styles */
+.webpilot-settings-section {
+  border-bottom: 1px solid #f0f0f0;
+  background: #fafafa;
+}
+
+.webpilot-settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #495057;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.webpilot-settings-header:hover {
+  background: #f0f0f0;
+}
+
+.webpilot-settings-toggle {
+  background: none;
+  border: none;
+  font-size: 12px;
+  cursor: pointer;
+  color: #6c757d;
+  padding: 2px 6px;
+  border-radius: 3px;
+  transition: background-color 0.2s;
+}
+
+.webpilot-settings-content {
+  padding: 16px;
+  background: #ffffff;
+  border-top: 1px solid #e9ecef;
+}
+
+.webpilot-form-group {
+  margin-bottom: 16px;
+}
+
+.webpilot-form-group input[type="password"] {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 12px;
+  box-sizing: border-box;
+}
+
+.webpilot-settings-btn {
+  padding: 8px 12px;
+  border: 1px solid #667eea;
+  border-radius: 4px;
+  background: #667eea;
+  color: white;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-right: 8px;
+}
+
+.webpilot-settings-status {
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  margin-top: 12px;
+}
+
+.webpilot-settings-status.success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.webpilot-settings-status.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}

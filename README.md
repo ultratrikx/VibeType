@@ -1,19 +1,21 @@
 # WebPilot - AI Writing Assistant
 
-WebPilot is a browser extension that provides AI-powered writing assistance similar to GitHub Copilot, but for any website. It helps you write better content by providing real-time suggestions, improvements, and rewriting capabilities using ChatGPT.
+WebPilot is a browser extension that provides AI-powered writing assistance similar to GitHub Copilot, but for any website. It features a sleek sidebar interface that appears alongside your content, helping you write better with real-time suggestions, improvements, and rewriting capabilities using ChatGPT.
 
 ## ✨ Features
 
-- **Real-time Suggestions**: Get AI-powered suggestions as you type in any text field
-- **Text Improvement**: Enhance clarity, grammar, and style with one click
-- **Text Rewriting**: Rewrite content in different ways while maintaining meaning
-- **Text Elaboration**: Expand and add detail to your writing
-- **Chat Interface**: Ask WebPilot for writing help and advice
-- **Context Awareness**: Understands the webpage context for better suggestions
-- **Cross-Tab Context**: Include context from other browser tabs for enhanced AI assistance
-- **Universal Compatibility**: Works on any website with text inputs
-- **Keyboard Shortcuts**: Quick access with Ctrl/Cmd + Shift + P
-- **Modern UI**: Beautiful, responsive interface with dark mode support
+-   **Sidebar Interface**: Non-intrusive sidebar that appears alongside page content
+-   **Real-time Suggestions**: Get AI-powered suggestions as you type in any text field
+-   **Text Improvement**: Enhance clarity, grammar, and style with one click
+-   **Text Rewriting**: Rewrite content in different ways while maintaining meaning
+-   **Text Elaboration**: Expand and add detail to your writing
+-   **Chat Interface**: Ask WebPilot for writing help and advice
+-   **Context Awareness**: Understands the webpage context for better suggestions
+-   **Cross-Tab Context**: Include context from other browser tabs for enhanced AI assistance
+-   **Universal Compatibility**: Works on any website with text inputs
+-   **Keyboard Shortcuts**: Quick access with Ctrl/Cmd + Shift + W
+-   **Responsive Design**: Works on all screen sizes with smart responsive behavior
+-   **Modern UI**: Beautiful, responsive interface with dark mode support
 
 ## 🚀 Installation
 
@@ -34,106 +36,132 @@ WebPilot is a browser extension that provides AI-powered writing assistance simi
 ## ⚙️ Setup
 
 1. **Get an OpenAI API Key**:
-   - Visit [OpenAI Platform](https://platform.openai.com/api-keys)
-   - Create an account or sign in
-   - Generate a new API key (free tier available)
+
+    - Visit [OpenAI Platform](https://platform.openai.com/api-keys)
+    - Create an account or sign in
+    - Generate a new API key (free tier available)
 
 2. **Configure the Extension**:
-   - Click the WebPilot extension icon in your browser
-   - Enter your OpenAI API key in the settings
-   - Click "Save API Key" and "Test Connection"
-   - Enable/disable features as needed
+    - Click the WebPilot extension icon in your browser
+    - Enter your OpenAI API key in the settings
+    - Click "Save API Key" and "Test Connection"
+    - Enable/disable features as needed
 
 ## 🎯 How to Use
 
+### Sidebar Interface
+
+WebPilot features a sidebar that slides in from the right side of your screen, pushing the page content to the left to ensure nothing is hidden.
+
+**Opening the Sidebar:**
+
+-   **Method 1**: Press `Ctrl+Shift+W` (or `Cmd+Shift+W` on Mac) on any page
+-   **Method 2**: Click on any text input field and the sidebar will appear automatically
+-   **Method 3**: Click the WebPilot extension icon (opens settings)
+
+**Closing the Sidebar:**
+
+-   Press `Escape` key
+-   Press `Ctrl+Shift+W` (or `Cmd+Shift+W` on Mac) again to toggle
+-   Click the close button (×) in the sidebar header
+
 ### Basic Usage
 
-1. **Navigate to any website** with text input fields (Gmail, Notion, Twitter, etc.)
-2. **Click on a text field** (input, textarea, or contenteditable)
-3. **WebPilot sidebar appears** automatically on the right
-4. **Start typing** to get real-time suggestions
-5. **Use action buttons** to improve, rewrite, or elaborate your text
+1. **Open the sidebar** using one of the methods above
+2. **Focus on any text field** (input, textarea, or contenteditable)
+3. **Start typing** to get real-time AI suggestions
+4. **Use action buttons** to improve, rewrite, or elaborate your text
+5. **Chat with WebPilot** for writing assistance and advice
+
+### Responsive Design
+
+The sidebar adapts to different screen sizes:
+
+-   **Desktop**: 380px sidebar with content pushed to the left
+-   **Tablet**: 320px sidebar with content adjustment
+-   **Mobile**: Full-width sidebar overlay for optimal experience
 
 ### Cross-Tab Context Feature
 
 WebPilot can include context from other browser tabs to provide more relevant suggestions:
 
-1. **Open the sidebar** by clicking on a text field
-2. **Expand "Additional Tab Context"** section (click the arrow)
-3. **Select a tab** from the dropdown list
-4. **Click "Load Context"** to include that tab's content
-5. **Get enhanced suggestions** that consider both current page and selected tab context
-6. **Clear context** when no longer needed
+1. **Open the sidebar** and expand "Additional Tab Context" section
+2. **Select a tab** from the dropdown list
+3. **Click "Load Context"** to include that tab's content
+4. **Get enhanced suggestions** that consider both current page and selected tab context
+5. **Clear context** when no longer needed
 
 **Use Cases:**
-- Writing an email while referencing information from another tab
-- Creating content based on research from multiple sources
-- Summarizing information from different web pages
-- Cross-referencing data while writing reports
+
+-   Writing an email while referencing information from another tab
+-   Creating content based on research from multiple sources
+-   Summarizing information from different web pages
+-   Cross-referencing data while writing reports
 
 ### Action Buttons
 
-- **Improve**: Fixes grammar, improves clarity, and enhances style
-- **Rewrite**: Rewrites text using different words and structures
-- **Elaborate**: Expands text with more details and examples
-- **Chat**: Opens a chat interface for writing help
+-   **Improve**: Fixes grammar, improves clarity, and enhances style
+-   **Rewrite**: Rewrites text using different words and structures
+-   **Elaborate**: Expands text with more details and examples
+-   **Chat**: Opens a chat interface for writing help
 
 ### Keyboard Shortcuts
 
-- **Ctrl/Cmd + Shift + P**: Toggle WebPilot sidebar
-- **Enter** in chat: Send message
-- **Shift + Enter** in chat: New line
+-   **Ctrl/Cmd + Shift + P**: Toggle WebPilot sidebar
+-   **Enter** in chat: Send message
+-   **Shift + Enter** in chat: New line
 
 ### Supported Text Fields
 
-- Regular input fields (`<input type="text">`)
-- Text areas (`<textarea>`)
-- Contenteditable elements (`[contenteditable]`)
-- Rich text editors (Quill, ProseMirror)
-- Gmail compose windows
-- Notion pages
-- Twitter/X compose boxes
-- And many more!
+-   Regular input fields (`<input type="text">`)
+-   Text areas (`<textarea>`)
+-   Contenteditable elements (`[contenteditable]`)
+-   Rich text editors (Quill, ProseMirror)
+-   Gmail compose windows
+-   Notion pages
+-   Twitter/X compose boxes
+-   And many more!
 
 ## 🔧 Configuration
 
 ### Settings
 
-- **Enable/Disable**: Turn WebPilot on or off globally
-- **Auto-suggestions**: Enable/disable real-time suggestions
-- **API Key Management**: Save and test your OpenAI API key
+-   **Enable/Disable**: Turn WebPilot on or off globally
+-   **Auto-suggestions**: Enable/disable real-time suggestions
+-   **API Key Management**: Save and test your OpenAI API key
 
 ### Customization
 
 The extension automatically adapts to:
-- **Dark/Light mode** based on system preferences
-- **Responsive design** for different screen sizes
-- **Website context** for better suggestions
-- **Cross-tab context** for enhanced AI assistance
+
+-   **Dark/Light mode** based on system preferences
+-   **Responsive design** for different screen sizes
+-   **Website context** for better suggestions
+-   **Cross-tab context** for enhanced AI assistance
 
 ## 🛠️ Technical Details
 
 ### Architecture
 
-- **Manifest V3**: Modern Chrome extension architecture
-- **Content Scripts**: Inject UI and handle text field detection
-- **Background Script**: Manages API calls and extension logic
-- **Popup Interface**: Settings and configuration management
-- **Cross-Tab Communication**: Secure tab context extraction
+-   **Manifest V3**: Modern Chrome extension architecture
+-   **Content Scripts**: Inject UI and handle text field detection
+-   **Background Script**: Manages API calls and extension logic
+-   **Popup Interface**: Settings and configuration management
+-   **Cross-Tab Communication**: Secure tab context extraction
 
 ### API Integration
 
-- **OpenAI GPT-3.5-turbo**: For all AI-powered features
-- **Context-Aware Prompts**: Includes webpage information for better suggestions
-- **Multi-Context Support**: Combines current page and additional tab context
-- **Error Handling**: Graceful fallbacks for API issues
+-   **OpenAI GPT-3.5-turbo**: For all AI-powered features
+-   **Context-Aware Prompts**: Includes webpage information for better suggestions
+-   **Multi-Context Support**: Combines current page and additional tab context
+-   **Error Handling**: Graceful fallbacks for API issues
 
 ### Security
 
-- **Local Storage**: API keys stored securely in browser storage
-- **No Data Collection**: All processing happens locally
-- **Privacy-First**: No user data sent to external servers except OpenAI
-- **Tab Isolation**: Context extraction only when explicitly requested
+-   **Local Storage**: API keys stored securely in browser storage
+-   **No Data Collection**: All processing happens locally
+-   **Privacy-First**: No user data sent to external servers except OpenAI
+-   **Tab Isolation**: Context extraction only when explicitly requested
 
 ## 📁 File Structure
 
@@ -158,9 +186,9 @@ You'll need to create icon files for the extension:
 
 1. **Create an `icons` folder** in the extension directory
 2. **Add icon files**:
-   - `icon16.png` (16x16 pixels)
-   - `icon48.png` (48x48 pixels)
-   - `icon128.png` (128x128 pixels)
+    - `icon16.png` (16x16 pixels)
+    - `icon48.png` (48x48 pixels)
+    - `icon128.png` (128x128 pixels)
 
 You can use any image editor or online icon generators to create these icons.
 
@@ -169,29 +197,34 @@ You can use any image editor or online icon generators to create these icons.
 ### Common Issues
 
 **Extension not working:**
-- Check if the extension is enabled in `chrome://extensions/`
-- Verify your OpenAI API key is valid
-- Test the API connection in settings
+
+-   Check if the extension is enabled in `chrome://extensions/`
+-   Verify your OpenAI API key is valid
+-   Test the API connection in settings
 
 **No suggestions appearing:**
-- Ensure you have a valid API key configured
-- Check if auto-suggestions are enabled
-- Try refreshing the webpage
+
+-   Ensure you have a valid API key configured
+-   Check if auto-suggestions are enabled
+-   Try refreshing the webpage
 
 **Sidebar not appearing:**
-- Click on a text input field to trigger the sidebar
-- Use Ctrl/Cmd + Shift + P to manually toggle
-- Check if the extension is enabled
+
+-   Click on a text input field to trigger the sidebar
+-   Use Ctrl/Cmd + Shift + P to manually toggle
+-   Check if the extension is enabled
 
 **Tab context not loading:**
-- Ensure the target tab is accessible (not a chrome:// page)
-- Check if the tab has loaded completely
-- Try refreshing the target tab
+
+-   Ensure the target tab is accessible (not a chrome:// page)
+-   Check if the tab has loaded completely
+-   Try refreshing the target tab
 
 **API errors:**
-- Verify your API key is correct
-- Check your OpenAI account balance
-- Ensure you have internet connectivity
+
+-   Verify your API key is correct
+-   Check your OpenAI account balance
+-   Ensure you have internet connectivity
 
 ### Debug Mode
 
@@ -224,9 +257,9 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ## 🙏 Acknowledgments
 
-- **OpenAI** for providing the GPT API
-- **Chrome Extensions** team for the excellent documentation
-- **GitHub Copilot** for inspiration
+-   **OpenAI** for providing the GPT API
+-   **Chrome Extensions** team for the excellent documentation
+-   **GitHub Copilot** for inspiration
 
 ## 📞 Support
 
@@ -250,4 +283,4 @@ To update the extension:
 
 **Happy Writing! ✍️**
 
-WebPilot makes writing better, one suggestion at a time. 
+WebPilot makes writing better, one suggestion at a time.

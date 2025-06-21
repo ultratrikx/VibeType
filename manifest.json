@@ -1,42 +1,42 @@
 {
-  "manifest_version": 3,
-  "name": "WebPilot - AI Writing Assistant",
-  "version": "1.0.0",
-  "description": "AI-powered writing assistant that helps you write better on any website",
-  "permissions": [
-    "activeTab",
-    "storage",
-    "scripting",
-    "tabs"
-  ],
-  "host_permissions": [
-    "https://api.openai.com/*",
-    "<all_urls>"
-  ],
-  "background": {
-    "service_worker": "background.js"
-  },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"],
-      "css": ["styles.css"],
-      "run_at": "document_end"
-    }
-  ],
-  "action": {
-    "default_popup": "popup.html",
-    "default_title": "WebPilot Settings"
-  },
-  "icons": {
-    "16": "icons/icon16.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
-  },
-  "web_accessible_resources": [
-    {
-      "resources": ["sidebar.html", "sidebar.js"],
-      "matches": ["<all_urls>"]
-    }
-  ]
-} 
+    "manifest_version": 3,
+    "name": "WebPilot - AI Writing Assistant",
+    "version": "1.0.0",
+    "description": "AI-powered writing assistant that helps you write better on any website",
+    "permissions": ["activeTab", "storage", "scripting", "tabs"],
+    "host_permissions": ["https://api.openai.com/*", "<all_urls>"],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["content.js"],
+            "css": ["styles.css"],
+            "run_at": "document_end"
+        }
+    ],
+    "action": {
+        "default_title": "Toggle WebPilot Sidebar"
+    },
+    "commands": {
+        "toggle-sidebar": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+W",
+                "mac": "Command+Shift+W"
+            },
+            "description": "Toggle WebPilot sidebar"
+        }
+    },
+    "icons": {
+        "16": "icons/icon16.png",
+        "48": "icons/icon48.png",
+        "128": "icons/icon128.png"
+    },
+    "web_accessible_resources": [
+        {
+            "resources": ["sidebar.html", "sidebar.js"],
+            "matches": ["<all_urls>"]
+        }
+    ]
+}
