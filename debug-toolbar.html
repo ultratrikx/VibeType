@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Simple Floating Toolbar Test</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                padding: 20px;
+                line-height: 1.6;
+            }
+
+            .test-area {
+                margin: 20px 0;
+                padding: 20px;
+                border: 2px solid #ddd;
+                border-radius: 8px;
+            }
+
+            textarea,
+            input {
+                width: 100%;
+                padding: 10px;
+                font-size: 16px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                margin: 10px 0;
+            }
+
+            textarea {
+                height: 120px;
+                resize: vertical;
+            }
+
+            .instructions {
+                background: #f0f8ff;
+                padding: 15px;
+                border-radius: 5px;
+                margin-bottom: 20px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>🧪 Simple Floating Toolbar Test</h1>
+
+        <div class="instructions">
+            <h3>Debug Steps:</h3>
+            <ol>
+                <li>Open browser console (F12)</li>
+                <li>Type text in the fields below</li>
+                <li>Wait 1.5 seconds OR select some text</li>
+                <li>Click the floating toolbar buttons</li>
+                <li>Check console for debug messages and watch for alerts</li>
+            </ol>
+        </div>
+
+        <div class="test-area">
+            <h3>📝 Text Input Test</h3>
+            <input
+                type="text"
+                placeholder="Type some text here..."
+                value="This is a sample sentence that needs improvement."
+            />
+        </div>
+
+        <div class="test-area">
+            <h3>📄 Textarea Test</h3>
+            <textarea placeholder="Type a paragraph here...">
+This is a longer paragraph that could use some elaboration. The floating toolbar should appear when you stop typing or when you select part of this text.</textarea
+            >
+        </div>
+
+        <div class="test-area">
+            <h3>✏️ Contenteditable Test</h3>
+            <div
+                contenteditable="true"
+                style="
+                    border: 1px solid #ccc;
+                    padding: 10px;
+                    min-height: 80px;
+                    background: white;
+                "
+            >
+                This is editable content. Try selecting some words and see if
+                the floating toolbar appears above your selection.
+            </div>
+        </div>
+
+        <div
+            style="
+                margin-top: 30px;
+                padding: 15px;
+                background: #fff3cd;
+                border-radius: 5px;
+            "
+        >
+            <strong>Expected behavior:</strong>
+            <ul>
+                <li>
+                    Floating toolbar appears after typing stops or when text is
+                    selected
+                </li>
+                <li>Clicking buttons should show alerts with debug info</li>
+                <li>Console should show debug messages for each step</li>
+                <li>Toolbar should not disappear when clicked</li>
+            </ul>
+        </div>
+    </body>
+</html>

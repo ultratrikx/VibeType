@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>WebPilot Floating Toolbar Test</title>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                    Roboto, sans-serif;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 20px;
+                line-height: 1.6;
+            }
+
+            .test-section {
+                margin: 30px 0;
+                padding: 20px;
+                border: 1px solid #e1e5e9;
+                border-radius: 8px;
+                background: #f9fafb;
+            }
+
+            .test-input {
+                width: 100%;
+                padding: 12px;
+                border: 1px solid #d1d5db;
+                border-radius: 6px;
+                font-size: 14px;
+                font-family: inherit;
+                margin: 10px 0;
+            }
+
+            .test-textarea {
+                width: 100%;
+                height: 100px;
+                padding: 12px;
+                border: 1px solid #d1d5db;
+                border-radius: 6px;
+                font-size: 14px;
+                font-family: inherit;
+                resize: vertical;
+                margin: 10px 0;
+            }
+
+            .test-contenteditable {
+                width: 100%;
+                min-height: 80px;
+                padding: 12px;
+                border: 1px solid #d1d5db;
+                border-radius: 6px;
+                font-size: 14px;
+                font-family: inherit;
+                margin: 10px 0;
+                background: white;
+            }
+
+            .test-contenteditable:focus {
+                outline: 2px solid #3b82f6;
+                outline-offset: 2px;
+            }
+
+            .instructions {
+                background: #dbeafe;
+                padding: 15px;
+                border-radius: 6px;
+                margin-bottom: 20px;
+            }
+
+            .shortcuts {
+                background: #f3f4f6;
+                padding: 15px;
+                border-radius: 6px;
+                margin-top: 20px;
+            }
+
+            .shortcuts h3 {
+                margin-top: 0;
+            }
+
+            .shortcut-item {
+                display: flex;
+                align-items: center;
+                margin: 5px 0;
+            }
+
+            .shortcut-key {
+                background: #374151;
+                color: white;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-size: 12px;
+                font-weight: 500;
+                margin-right: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>🚀 WebPilot Floating Toolbar Test</h1>
+        <div class="instructions">
+            <h3>📋 Instructions</h3>
+            <ol>
+                <li>
+                    <strong>Typing Mode:</strong> Type some text in any input
+                    field, stop typing and wait 1.5 seconds
+                </li>
+                <li>
+                    <strong>Selection Mode:</strong> Type text, then select part
+                    of it with your mouse or keyboard
+                </li>
+                <li>
+                    A floating toolbar should appear above your cursor or
+                    selection with AI options
+                </li>
+                <li>
+                    Try the different AI suggestions: Elaborate, Improve,
+                    Rewrite
+                </li>
+                <li>
+                    Use the + button to add context from the current page or
+                    other tabs
+                </li>
+                <li>
+                    <strong>Note:</strong> When text is selected, AI will
+                    process only the selected portion
+                </li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h3>📝 Input Field Test</h3>
+            <p>Type a short sentence or paragraph below:</p>
+            <input
+                type="text"
+                class="test-input"
+                placeholder="Type something here and wait for the floating toolbar..."
+                value=""
+            />
+        </div>
+
+        <div class="test-section">
+            <h3>📄 Textarea Test</h3>
+            <p>Type a longer text below:</p>
+            <textarea
+                class="test-textarea"
+                placeholder="Write a paragraph here and the floating toolbar will appear after you stop typing..."
+            ></textarea>
+        </div>
+        <div class="test-section">
+            <h3>✏️ Content Editable Test</h3>
+            <p>This is a rich text editor simulation:</p>
+            <div
+                class="test-contenteditable"
+                contenteditable="true"
+                placeholder="Click here and start typing..."
+            >
+                Type your content here...
+            </div>
+        </div>
+
+        <div class="test-section" style="background: #e0f2fe">
+            <h3>🎯 Text Selection Test</h3>
+            <p><strong>NEW:</strong> Select text to show floating toolbar!</p>
+            <textarea
+                class="test-textarea"
+                placeholder="Type some text here, then select part of it with your mouse..."
+            >
+This is a sample paragraph. Try selecting some words or sentences to see the floating toolbar appear above your selection. You can select any part of this text and the AI options will work on just the selected portion.</textarea
+            >
+            <div
+                class="test-contenteditable"
+                contenteditable="true"
+                style="margin-top: 10px"
+            >
+                <p>
+                    This is editable content.
+                    <strong>Select any part of this text</strong> and watch the
+                    floating toolbar appear above your selection. You can
+                    improve, rewrite, or elaborate on just the selected text!
+                </p>
+                <p>
+                    Try selecting a single word, a sentence, or multiple
+                    paragraphs. The AI will process only what you have selected.
+                </p>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔒 Protected Fields (Should NOT show toolbar)</h3>
+            <p>These fields should not trigger the floating toolbar:</p>
+            <input
+                type="password"
+                class="test-input"
+                placeholder="Password field - no toolbar"
+            />
+            <input
+                type="text"
+                class="test-input no-webpilot"
+                placeholder="Field with no-webpilot class"
+            />
+        </div>
+
+        <div class="test-section">
+            <h3>📱 Mobile Test</h3>
+            <p>Resize your browser window to test mobile responsiveness:</p>
+            <textarea
+                class="test-textarea"
+                placeholder="The floating toolbar should adapt to smaller screens..."
+            ></textarea>
+        </div>
+
+        <div class="shortcuts">
+            <h3>⌨️ Keyboard Shortcuts</h3>
+            <div class="shortcut-item">
+                <span class="shortcut-key">Ctrl/Cmd + Shift + E</span>
+                <span>Elaborate text</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-key">Ctrl/Cmd + Shift + I</span>
+                <span>Improve text</span>
+            </div>
+            <div class="shortcut-item">
+                <span class="shortcut-key">Ctrl/Cmd + Shift + R</span>
+                <span>Rewrite text</span>
+            </div>
+        </div>
+
+        <div
+            style="
+                margin-top: 40px;
+                padding: 20px;
+                background: #fef3c7;
+                border-radius: 6px;
+            "
+        >
+            <h3>🔧 Development Notes</h3>
+            <ul>
+                <li>
+                    The floating toolbar appears 1.5 seconds after typing stops
+                </li>
+                <li>It automatically fetches context from the current page</li>
+                <li>
+                    The toolbar repositions itself to avoid going off-screen
+                </li>
+                <li>It includes hover tooltips and smooth animations</li>
+                <li>
+                    Password fields and elements with .no-webpilot class are
+                    excluded
+                </li>
+            </ul>
+        </div>
+    </body>
+</html>

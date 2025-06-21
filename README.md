@@ -4,6 +4,7 @@ WebPilot is a browser extension that provides AI-powered writing assistance simi
 
 ## ✨ Features
 
+-   **🎯 Floating Toolbar**: Smart floating toolbar that appears above your cursor when you stop typing
 -   **Real-time Suggestions**: Get AI-powered suggestions as you type in any text field
 -   **Text Improvement**: Enhance clarity, grammar, and style with one click
 -   **Text Rewriting**: Rewrite content in different ways while maintaining meaning
@@ -14,9 +15,31 @@ WebPilot is a browser extension that provides AI-powered writing assistance simi
 -   **Semantic Search**: Performs semantic search on the current page to find content related to your text
 -   **Cross-Tab Context**: Include context from other browser tabs for enhanced AI assistance
 -   **Universal Compatibility**: Works on any website with text inputs
--   **Keyboard Shortcuts**: Quick access with Ctrl/Cmd + Shift + P
+-   **Keyboard Shortcuts**: Quick access with Ctrl/Cmd + Shift + P and floating toolbar shortcuts
 -   **Modern UI**: Beautiful, responsive interface with dark mode support
 -   **100% Client-Side**: All content processing happens directly in the browser, no external API needed
+
+### 🎈 New: Floating Toolbar
+
+The floating toolbar appears automatically when you stop typing, providing instant access to AI suggestions:
+
+-   **📝 Elaborate**: Expand and add more detail to your text
+-   **✨ Improve**: Enhance clarity, grammar, and style
+-   **🔄 Rewrite**: Rewrite content in different ways
+-   **➕ Add Context**: Automatically include context from current page or other tabs
+
+**Keyboard Shortcuts**:
+
+-   `Ctrl/Cmd + Shift + E` - Elaborate text
+-   `Ctrl/Cmd + Shift + I` - Improve text
+-   `Ctrl/Cmd + Shift + R` - Rewrite text
+
+**Smart Features**:
+
+-   Auto-positioning to avoid going off-screen
+-   Mobile-responsive design
+-   Excludes password fields and sensitive inputs
+-   Smooth animations and hover effects
 
 ## 🚀 Installation
 
