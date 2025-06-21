@@ -2,7 +2,6 @@
 class WebPilotBackground {
     constructor() {
         this.apiKey = null;
-        this.scrapeApiUrl = "http://localhost:8000"; // Default local API
         this.init();
     }
 
@@ -11,12 +10,8 @@ class WebPilotBackground {
         this.setupMessageListeners();
     }
     async loadSettings() {
-        const result = await chrome.storage.local.get([
-            "openai_api_key",
-            "scrape_api_url",
-        ]);
+        const result = await chrome.storage.local.get(["openai_api_key"]);
         this.apiKey = result.openai_api_key;
-        this.scrapeApiUrl = result.scrape_api_url || "http://localhost:8000";
     }
 
     setupMessageListeners() {
@@ -119,36 +114,62 @@ class WebPilotBackground {
             sendResponse({ success: false, error: error.message });
         }
     }
-
     async handleEnhancedContentExtraction(request, sendResponse) {
         try {
             const { tabId, query } = request;
 
-            // First get the HTML content from the tab
-            const htmlContent = await this.getTabHTML(tabId);
-
-            // Call our scraping API for enhanced processing
-            const apiResponse = await fetch(`${this.scrapeApiUrl}/process`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    html: htmlContent,
-                    query: query || "Extract main content",
-                    chunk_size: 750,
-                    top_k: 5,
-                }),
-            });
-
-            if (!apiResponse.ok) {
+            // Check if API key is available
+            if (!this.apiKey) {
                 throw new Error(
-                    `API Error: ${apiResponse.status} ${apiResponse.statusText}`
+                    "OpenAI API key is required. Please set it in the extension settings."
                 );
             }
 
-            const result = await apiResponse.json();
-            sendResponse({ success: true, ...result });
+            // First get the HTML content from the tab
+            const htmlContent = await this.getTabHTML(tabId);
+
+            // Inject the processor scripts
+            await chrome.scripting.executeScript({
+                target: { tabId: tabId },
+                files: [
+                    "html_parser.js",
+                    "content_chunker.js",
+                    "semantic_search.js",
+                    "content_processor.js",
+                    "inject_processor.js",
+                ],
+            });
+
+            // Process HTML content locally using our content processor
+            const processingResults = await chrome.scripting.executeScript({
+                target: { tabId: tabId },
+                func: (html, apiKey, query) => {
+                    // Create a new content processor
+                    const processor = new ContentProcessor({
+                        apiKey: apiKey,
+                        chunkSize: 750,
+                    });
+
+                    // Process the HTML
+                    return processor.process({
+                        html: html,
+                        query: query || "Extract main content",
+                        topK: 5,
+                    });
+                },
+                args: [htmlContent, this.apiKey, query],
+            });
+
+            if (
+                processingResults &&
+                processingResults[0] &&
+                processingResults[0].result
+            ) {
+                const result = processingResults[0].result;
+                sendResponse({ success: true, ...result });
+            } else {
+                throw new Error("Content processing failed");
+            }
         } catch (error) {
             console.error("Enhanced content extraction failed:", error);
             // Fallback to basic extraction
@@ -162,31 +183,29 @@ class WebPilotBackground {
             });
         }
     }
-
     async handleSearchWebContent(request, sendResponse) {
         try {
             const { html, query, chunkSize, topK } = request;
 
-            const apiResponse = await fetch(`${this.scrapeApiUrl}/process`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    html: html,
-                    query: query,
-                    chunk_size: chunkSize || 750,
-                    top_k: topK || 3,
-                }),
-            });
-
-            if (!apiResponse.ok) {
+            // Check if API key is available
+            if (!this.apiKey) {
                 throw new Error(
-                    `API Error: ${apiResponse.status} ${apiResponse.statusText}`
+                    "OpenAI API key is required. Please set it in the extension settings."
                 );
             }
 
-            const result = await apiResponse.json();
+            // Process HTML content locally using our content processor
+            const processor = new ContentProcessor({
+                apiKey: this.apiKey,
+                chunkSize: chunkSize || 750,
+            });
+
+            const result = await processor.process({
+                html: html,
+                query: query,
+                topK: topK || 3,
+            });
+
             sendResponse({ success: true, ...result });
         } catch (error) {
             console.error("Web content search failed:", error);
@@ -390,11 +409,12 @@ class WebPilotBackground {
             return;
         }
 
-        const { text, context, additionalContext } = request;
+        const { text, context, additionalContext, useEmbeddings } = request;
         const prompt = this.buildImprovePrompt(
             text,
             context,
-            additionalContext
+            additionalContext,
+            useEmbeddings
         );
         const response = await this.callOpenAI(prompt, 1);
 
@@ -415,11 +435,12 @@ class WebPilotBackground {
             return;
         }
 
-        const { text, context, additionalContext } = request;
+        const { text, context, additionalContext, useEmbeddings } = request;
         const prompt = this.buildRewritePrompt(
             text,
             context,
-            additionalContext
+            additionalContext,
+            useEmbeddings
         );
         const response = await this.callOpenAI(prompt, 1);
 
@@ -440,11 +461,12 @@ class WebPilotBackground {
             return;
         }
 
-        const { text, context, additionalContext } = request;
+        const { text, context, additionalContext, useEmbeddings } = request;
         const prompt = this.buildElaboratePrompt(
             text,
             context,
-            additionalContext
+            additionalContext,
+            useEmbeddings
         );
         const response = await this.callOpenAI(prompt, 1);
 
@@ -465,12 +487,19 @@ class WebPilotBackground {
             return;
         }
 
-        const { message, context, currentText, additionalContext } = request;
+        const {
+            message,
+            context,
+            currentText,
+            additionalContext,
+            useEmbeddings,
+        } = request;
         const prompt = this.buildChatPrompt(
             message,
             context,
             currentText,
-            additionalContext
+            additionalContext,
+            useEmbeddings
         );
         const response = await this.callOpenAI(prompt, 1);
 
@@ -512,7 +541,12 @@ Provide 3 different suggestions to complete or improve the current sentence/phra
 Return only the suggestions, one per line, without numbering or additional formatting.`;
     }
 
-    buildImprovePrompt(text, context, additionalContext = null) {
+    buildImprovePrompt(
+        text,
+        context,
+        additionalContext = null,
+        useEmbeddings = false
+    ) {
         let contextInfo = `Context:
 - Page title: ${context.title}
 - Website: ${context.domain}
@@ -521,7 +555,8 @@ Return only the suggestions, one per line, without numbering or additional forma
         if (additionalContext) {
             contextInfo += this.buildEnhancedContextInfo(
                 additionalContext,
-                "improvement"
+                "improvement",
+                useEmbeddings
             );
         }
 
@@ -541,7 +576,12 @@ Please improve this text by:
 Return only the improved text without any explanations or additional formatting.`;
     }
 
-    buildRewritePrompt(text, context, additionalContext = null) {
+    buildRewritePrompt(
+        text,
+        context,
+        additionalContext = null,
+        useEmbeddings = false
+    ) {
         let contextInfo = `Context:
 - Page title: ${context.title}
 - Website: ${context.domain}
@@ -550,27 +590,33 @@ Return only the improved text without any explanations or additional formatting.
         if (additionalContext) {
             contextInfo += this.buildEnhancedContextInfo(
                 additionalContext,
-                "rewriting"
+                "rewriting",
+                useEmbeddings
             );
         }
 
-        return `You are WebPilot, an AI writing assistant. Rewrite the following text in a different way while keeping the same meaning.
+        return `You are WebPilot, an AI writing assistant. Rewrite the following text in a fresh way while preserving the core meaning.
 
 ${contextInfo}
 
 Original text: "${text}"
 
 Please rewrite this text by:
-1. Using different words and sentence structures
-2. Maintaining the same meaning and intent
-3. Keeping the same tone and style
-4. Making it more engaging if possible
-5. Considering any additional context for better relevance
+1. Using different vocabulary and sentence structures
+2. Maintaining the same level of formality and tone
+3. Preserving the key points and overall message
+4. Making it engaging and easy to read
+5. Considering any additional context provided for better relevance
 
 Return only the rewritten text without any explanations or additional formatting.`;
     }
 
-    buildElaboratePrompt(text, context, additionalContext = null) {
+    buildElaboratePrompt(
+        text,
+        context,
+        additionalContext = null,
+        useEmbeddings = false
+    ) {
         let contextInfo = `Context:
 - Page title: ${context.title}
 - Website: ${context.domain}
@@ -579,27 +625,34 @@ Return only the rewritten text without any explanations or additional formatting
         if (additionalContext) {
             contextInfo += this.buildEnhancedContextInfo(
                 additionalContext,
-                "elaboration"
+                "elaboration",
+                useEmbeddings
             );
         }
 
-        return `You are WebPilot, an AI writing assistant. Elaborate on the following text by adding more detail, examples, or explanations.
+        return `You are WebPilot, an AI writing assistant. Elaborate on the following text by adding more details, explanations, and examples while maintaining the original tone and style.
 
 ${contextInfo}
 
 Original text: "${text}"
 
 Please elaborate on this text by:
-1. Adding relevant details and context
-2. Providing examples or explanations where appropriate
-3. Expanding on key points
-4. Maintaining the original tone and style
-5. Using any additional context provided for better elaboration
+1. Adding relevant details and background information
+2. Including examples, evidence, or illustrations where appropriate
+3. Explaining complex concepts more thoroughly
+4. Maintaining the original voice and intention
+5. Considering any additional context provided for better relevance
 
-Return only the elaborated text without any explanations or additional formatting.`;
+Return only the elaborated text without any explanations or additional formatting. The elaborated text should be at least twice as long as the original.`;
     }
 
-    buildChatPrompt(message, context, currentText, additionalContext = null) {
+    buildChatPrompt(
+        message,
+        context,
+        currentText,
+        additionalContext = null,
+        useEmbeddings = false
+    ) {
         let contextInfo = `Context:
 - Page title: ${context.title}
 - Website: ${context.domain}
@@ -609,7 +662,8 @@ Return only the elaborated text without any explanations or additional formattin
         if (additionalContext) {
             contextInfo += this.buildEnhancedContextInfo(
                 additionalContext,
-                "chat"
+                "chat",
+                useEmbeddings
             );
         }
 
@@ -625,10 +679,51 @@ Consider both the current page context and any additional context provided to gi
 
 Keep your response under 200 words unless the user specifically asks for more detail.`;
     }
-
-    buildEnhancedContextInfo(additionalContext, taskType) {
+    buildEnhancedContextInfo(
+        additionalContext,
+        taskType,
+        useEmbeddings = false
+    ) {
         if (!additionalContext) return "";
 
+        // Handle full page context with embeddings
+        if (additionalContext.full_page_context) {
+            let contextInfo = `
+
+Current Webpage Analysis (with GPT Embeddings):
+- Page title: ${additionalContext.title || "Untitled"}`;
+
+            // Add the most relevant chunks if available
+            if (
+                additionalContext.relevant_chunks &&
+                additionalContext.relevant_chunks.length > 0
+            ) {
+                contextInfo += `
+- Most relevant sections based on semantic search:
+
+`;
+                // Add the relevant chunks
+                additionalContext.relevant_chunks.forEach((chunk, index) => {
+                    contextInfo += `[Section ${
+                        index + 1
+                    }]: ${chunk.content.substring(0, 500)}${
+                        chunk.content.length > 500 ? "..." : ""
+                    }\n\n`;
+                });
+            } else if (additionalContext.content_markdown) {
+                // If no chunks but we have content, add a sample
+                contextInfo += `
+- Page content (sample):
+${additionalContext.content_markdown.substring(0, 500)}${
+                    additionalContext.content_markdown.length > 500 ? "..." : ""
+                }
+`;
+            }
+
+            return contextInfo;
+        }
+
+        // Standard tab context (old implementation)
         let contextInfo = `
 
 Additional Context from other tab:
@@ -756,12 +851,8 @@ Note: Consider the context from these sections to provide more informed and rele
             return { success: false, error: error.message };
         }
     }
-
     async handleGetSettings(sendResponse) {
-        const settings = await chrome.storage.local.get([
-            "openai_api_key",
-            "scrape_api_url",
-        ]);
+        const settings = await chrome.storage.local.get(["openai_api_key"]);
         sendResponse(settings);
     }
     async handleSaveSetting(request, sendResponse) {

@@ -82,19 +82,20 @@ class WebPilotSidebar {
                     e.preventDefault();
                     this.sendChatMessage();
                 }
-            }); // Settings View
+            });
+
+        // Settings View
         document
             .getElementById("saveApiKey")
             .addEventListener("click", () => this.saveApiKey());
         document
-            .getElementById("saveScrapeApi")
-            .addEventListener("click", () => this.saveScrapeApi());
-        document
             .getElementById("testApiKey")
             .addEventListener("click", () => this.testApiKey());
+
+        // Analyze Current Page
         document
-            .getElementById("testScrapeApi")
-            .addEventListener("click", () => this.testScrapeApi());
+            .getElementById("webpilot-analyze-page")
+            .addEventListener("click", () => this.analyzeCurrentPage());
 
         // Listen for messages from the content script
         window.addEventListener("message", (event) => {
@@ -112,6 +113,13 @@ class WebPilotSidebar {
                 this.showLoadingInSuggestions(data.message);
             } else if (action === "updateTabContext") {
                 this.displayTabContext(data.context);
+
+                // Check if this is a full page context with relevant chunks
+                if (data.context && data.context.full_page_context) {
+                    this.updateAnalysisDisplay(data.context);
+                }
+            } else if (action === "addSystemMessage") {
+                this.addSystemMessage(data.message, data.type);
             } else if (action === "addChatMessage") {
                 this.addChatMessage(data.sender, data.message);
             } else if (action === "settingsLoaded") {
@@ -133,6 +141,8 @@ class WebPilotSidebar {
                     data.message,
                     data.success ? "success" : "error"
                 );
+            } else if (action === "updateAnalysisDisplay") {
+                this.updateAnalysisDisplay(data.context);
             }
         });
     }
@@ -364,6 +374,84 @@ class WebPilotSidebar {
         display.style.display = "block";
     }
 
+    /**
+     * Analyze the current webpage with GPT embeddings
+     */
+    analyzeCurrentPage() {
+        const query =
+            document.getElementById("page-analysis-query").value ||
+            "Extract the most important information from this page";
+
+        this.showStatus("Analyzing current webpage...", "info");
+
+        // Show loading in the analysis display
+        const analysisDisplay = document.getElementById(
+            "webpilot-page-analysis-display"
+        );
+        analysisDisplay.style.display = "block";
+        analysisDisplay.innerHTML =
+            '<div class="loading">Analyzing webpage content with GPT embeddings...</div>';
+
+        // Request page analysis from content script
+        this.sendMessageToContentScript("analyzeCurrentPage", { query });
+    }
+
+    /**
+     * Update the analysis display with results
+     * @param {Object} context - The analysis context with relevant chunks
+     */
+    updateAnalysisDisplay(context) {
+        const analysisDisplay = document.getElementById(
+            "webpilot-page-analysis-display"
+        );
+        const chunksContainer = document.getElementById("page-relevant-chunks");
+        const chunksDisplay = document.getElementById("page-chunks-display");
+
+        // Set the page title
+        document.getElementById("page-analysis-title").textContent =
+            context.title || "Current Page";
+
+        // Show the display
+        analysisDisplay.style.display = "block";
+
+        // Check if we have relevant chunks
+        if (context.relevant_chunks && context.relevant_chunks.length > 0) {
+            // Clear previous content
+            chunksDisplay.innerHTML = "";
+
+            // Add each chunk
+            context.relevant_chunks.forEach((chunk) => {
+                const chunkEl = document.createElement("div");
+                chunkEl.className = "chunk-item";
+
+                const relevancePercent = (chunk.similarity_score * 100).toFixed(
+                    1
+                );
+
+                chunkEl.innerHTML = `
+                    <div class="chunk-title">${
+                        chunk.title || "Untitled Section"
+                    }</div>
+                    <div class="chunk-content">${chunk.content.substring(
+                        0,
+                        200
+                    )}${chunk.content.length > 200 ? "..." : ""}</div>
+                    <div class="chunk-relevance">${relevancePercent}% relevant</div>
+                `;
+
+                chunksDisplay.appendChild(chunkEl);
+            });
+
+            // Show the chunks container
+            chunksContainer.style.display = "block";
+        } else {
+            // No chunks available
+            chunksContainer.style.display = "none";
+            chunksDisplay.innerHTML =
+                '<div class="no-chunks">No relevant sections found.</div>';
+        }
+    }
+
     // --- Chat Logic ---
     sendChatMessage() {
         const input = document.getElementById("webpilot-chat-input");
@@ -384,6 +472,23 @@ class WebPilotSidebar {
         container.scrollTop = container.scrollHeight;
     }
 
+    /**
+     * Add a system message to the chat
+     * @param {string} message - The message to display
+     * @param {string} type - The type of system message
+     */
+    addSystemMessage(message, type = "default") {
+        const chatContainer = document.getElementById(
+            "webpilot-chat-container"
+        );
+        const systemMessageDiv = document.createElement("div");
+        systemMessageDiv.className = `system-message ${type}`;
+        systemMessageDiv.textContent = message;
+
+        chatContainer.appendChild(systemMessageDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
     // --- Settings Logic ---
     async loadSettings() {
         // Request settings from content script (which gets from storage)
@@ -396,20 +501,6 @@ class WebPilotSidebar {
             value: apiKey,
         });
         this.showStatus("API Key saved!", "success");
-    }
-
-    saveScrapeApi() {
-        const apiUrl = document.getElementById("scrapeApiUrl").value;
-        this.sendMessageToContentScript("saveSetting", {
-            key: "scrape_api_url",
-            value: apiUrl,
-        });
-        this.showStatus("Scrape API URL saved!", "success");
-    }
-
-    testScrapeApi() {
-        this.showStatus("Testing scrape API connection...", "info");
-        this.sendMessageToContentScript("testScrapeApi");
     }
 
     testApiKey() {
