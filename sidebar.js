@@ -325,7 +325,7 @@ class WebPilotSidebar {
 
         const display = document.getElementById("webpilot-tab-context-display");
         document.getElementById("tab-context-title").textContent =
-            context.title;
+            context.title || "Context";
 
         // Handle enhanced content with chunks
         if (
@@ -342,32 +342,38 @@ class WebPilotSidebar {
             const relevantChunks = document.getElementById("relevant-chunks");
 
             chunksDisplay.innerHTML = context.most_relevant_chunks
-                .map(
-                    (chunk, index) => `
+                .map((chunk, index) => {
+                    const content = chunk.content || "";
+                    const snippet =
+                        content.substring(0, 200) +
+                        (content.length > 200 ? "..." : "");
+                    const score = chunk.similarity_score
+                        ? `(Score: ${(chunk.similarity_score * 100).toFixed(
+                              1
+                          )}%)`
+                        : "";
+
+                    return `
                 <div class="chunk-item" style="margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
                     <div class="chunk-header" style="font-weight: bold; color: #333;">
                         Section ${index + 1}: ${chunk.title || "Untitled"} 
-                        <span style="font-size: 0.8em; color: #666;">(Score: ${(
-                            chunk.similarity_score * 100
-                        ).toFixed(1)}%)</span>
+                        <span style="font-size: 0.8em; color: #666;">${score}</span>
                     </div>
                     <div class="chunk-content" style="margin-top: 5px; font-size: 0.9em;">
-                        ${chunk.content.substring(0, 200)}${
-                        chunk.content.length > 200 ? "..." : ""
-                    }
+                        ${snippet}
                     </div>
                 </div>
-            `
-                )
+            `;
+                })
                 .join("");
 
             relevantChunks.style.display = "block";
         } else {
             // Basic content display
-            document.getElementById("tab-context-snippet").textContent =
-                context.content
-                    ? context.content.substring(0, 100) + "..."
-                    : "No content extracted";
+            const content = context.content || "";
+            document.getElementById("tab-context-snippet").textContent = content
+                ? content.substring(0, 100) + "..."
+                : "No content extracted";
             document.getElementById("relevant-chunks").style.display = "none";
         }
 

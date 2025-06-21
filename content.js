@@ -1709,9 +1709,28 @@ class WebPilotController {
         try {
             const text = this.getInputText();
             const query = text || "Extract key information from this page";
+            this.showFloatingLoading("Analyzing current page for context...");
             this.additionalContext = await this.analyzeCurrentWebpage(query);
+            this.hideFloatingLoading();
+
+            if (this.additionalContext) {
+                // Provide specific feedback about the context processing
+                const contextDetails = this.additionalContext
+                    .most_relevant_chunks
+                    ? `${this.additionalContext.most_relevant_chunks.length} relevant sections found.`
+                    : "Content processed.";
+                this.showFloatingSuccess(
+                    `Context from current page loaded. ${contextDetails}`
+                );
+            } else {
+                // This case might happen if analyzeCurrentWebpage returns null
+                this.showFloatingError("Could not extract context.");
+            }
         } catch (error) {
-            this.showFloatingError("Failed to fetch page context");
+            this.hideFloatingLoading();
+            this.showFloatingError(
+                `Failed to fetch page context: ${error.message}`
+            );
         }
     }
 
@@ -1799,21 +1818,26 @@ class WebPilotController {
             if (response.success) {
                 this.additionalContext = response;
 
-                // Show confirmation that context was loaded
+                // Show more descriptive confirmation that context was loaded
+                const contextDetails = response.most_relevant_chunks
+                    ? `${response.most_relevant_chunks.length} relevant sections found.`
+                    : "Content processed.";
                 this.showFloatingSuccess(
-                    "Context loaded! You can now use Elaborate, Improve, or Rewrite with this context."
+                    `Context from '${response.title}' loaded. ${contextDetails}`
                 );
 
                 // Optionally show the floating toolbar again if it was hidden
                 setTimeout(() => {
-                    this.showFloatingToolbarIfAppropriate();
+                    this.showFloatingToolbarIfAppropriate(this.activeElement);
                 }, 2000);
             } else {
-                this.showFloatingError("Failed to load tab context");
+                this.showFloatingError(
+                    response.error || "Failed to load tab context"
+                );
             }
         } catch (error) {
             this.hideFloatingLoading();
-            this.showFloatingError("Error loading context");
+            this.showFloatingError(`Error loading context: ${error.message}`);
         }
     }
 

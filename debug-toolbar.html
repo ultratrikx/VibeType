@@ -40,6 +40,118 @@
                 margin-bottom: 20px;
             }
         </style>
+        <script>
+            // Mock chrome APIs for local testing
+            if (typeof chrome === "undefined" || !chrome.runtime) {
+                window.chrome = {
+                    runtime: {
+                        getURL: (path) => `./${path}`, // Assume scripts are in the same folder
+                        sendMessage: (message, callback) => {
+                            console.log("Mock sendMessage:", message);
+                            if (message.action === "getAllTabs") {
+                                if (callback) {
+                                    callback({
+                                        success: true,
+                                        tabs: [
+                                            {
+                                                id: 1,
+                                                title: "Test Tab 1 - A very long title that should be truncated",
+                                                url: "http://example.com/1",
+                                            },
+                                            {
+                                                id: 2,
+                                                title: "Test Tab 2",
+                                                url: "http://example.com/2",
+                                            },
+                                            {
+                                                id: 3,
+                                                title: "Test Tab 3",
+                                                url: "http://example.com/3",
+                                            },
+                                        ],
+                                    });
+                                }
+                            } else if (
+                                message.action === "enhancedContentExtraction"
+                            ) {
+                                console.log(
+                                    `Mock enhancedContentExtraction for tabId: ${message.tabId}`
+                                );
+                                setTimeout(() => {
+                                    if (callback)
+                                        callback({
+                                            success: true,
+                                            title: `Content from Tab ${message.tabId}`,
+                                            most_relevant_chunks: [
+                                                {
+                                                    title: "Chunk 1",
+                                                    content:
+                                                        "some relevant content from the tab.",
+                                                    similarity_score: 0.9,
+                                                },
+                                            ],
+                                        });
+                                }, 1000);
+                            } else if (message.action === "analyzeWebpage") {
+                                console.log(
+                                    `Mock analyzeWebpage with query: ${message.query}`
+                                );
+                                setTimeout(() => {
+                                    if (callback)
+                                        callback({
+                                            success: true,
+                                            context: {
+                                                title: "Current Page Content",
+                                                most_relevant_chunks: [
+                                                    {
+                                                        title: "Analyzed Chunk 1",
+                                                        content:
+                                                            "some analyzed content from current page.",
+                                                        similarity_score: 0.98,
+                                                    },
+                                                ],
+                                            },
+                                        });
+                                }, 1000);
+                            } else {
+                                if (callback) {
+                                    // Generic success for other actions
+                                    setTimeout(
+                                        () =>
+                                            callback({
+                                                success: true,
+                                                improvedText:
+                                                    "This is improved text.",
+                                                rewrittenText:
+                                                    "This is rewritten text.",
+                                                elaboratedText:
+                                                    "This is elaborated text.",
+                                            }),
+                                        500
+                                    );
+                                }
+                            }
+                            return true; // Indicate async response
+                        },
+                        onMessage: {
+                            addListener: (callback) => {
+                                console.log(
+                                    "Mock onMessage.addListener called"
+                                );
+                            },
+                        },
+                        lastError: null,
+                    },
+                };
+            }
+        </script>
+        <!-- Load required scripts -->
+        <script src="html_parser.js" defer></script>
+        <script src="content_chunker.js" defer></script>
+        <script src="semantic_search.js" defer></script>
+        <script src="content_processor.js" defer></script>
+        <script src="inject_processor.js" defer></script>
+        <script src="content.js" defer></script>
     </head>
     <body>
         <h1>🧪 Simple Floating Toolbar Test</h1>
@@ -85,6 +197,23 @@ This is a longer paragraph that could use some elaboration. The floating toolbar
                 This is editable content. Try selecting some words and see if
                 the floating toolbar appears above your selection.
             </div>
+        </div>
+
+        <div class="test-area">
+            <h3>Context Actions Test</h3>
+            <p>
+                Use these buttons to test context actions directly. The WebPilot
+                controller must be loaded. Make sure you have some text in one
+                of the fields above.
+            </p>
+            <button
+                onclick="window.webPilotController.fetchCurrentPageContext()"
+            >
+                Fetch Current Page Context
+            </button>
+            <button onclick="window.webPilotController.showTabSelector()">
+                Show Tab Selector
+            </button>
         </div>
 
         <div
