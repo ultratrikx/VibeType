@@ -465,10 +465,29 @@ class WebPilotSidebar {
 
     addChatMessage(sender, message) {
         const container = document.getElementById("webpilot-chat-messages");
-        const messageEl = document.createElement("div");
-        messageEl.className = `message ${sender}`;
-        messageEl.textContent = message;
-        container.appendChild(messageEl);
+        // Create the message wrapper with role-based class
+        const messageWrapper = document.createElement("div");
+        messageWrapper.className = `webpilot-message ${sender}-message`;
+
+        // Create the avatar
+        const avatar = document.createElement("div");
+        avatar.className = "webpilot-avatar";
+        avatar.textContent = sender === "user" ? "🧑" : "🤖";
+
+        // Create the message content
+        const messageContent = document.createElement("div");
+        messageContent.className = "message-content";
+        messageContent.textContent = message;
+
+        // Append avatar and content in correct order
+        if (sender === "user") {
+            messageWrapper.appendChild(avatar);
+            messageWrapper.appendChild(messageContent);
+        } else {
+            messageWrapper.appendChild(avatar);
+            messageWrapper.appendChild(messageContent);
+        }
+        container.appendChild(messageWrapper);
         container.scrollTop = container.scrollHeight;
     }
 
