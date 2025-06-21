@@ -1,0 +1,359 @@
+/*-======- General Styles -======-*/
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    color: #333;
+    background-color: #f8f9fa;
+    font-size: 14px;
+    overflow: hidden;
+}
+
+.webpilot-sidebar-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/*-======- Header & Navigation -======-*/
+.webpilot-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.3s;
+}
+
+.webpilot-title {
+    font-weight: 600;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.webpilot-title #webpilot-icon {
+    display: inline-block;
+    transition: font-size 0.3s;
+}
+
+.webpilot-nav {
+    display: flex;
+    gap: 4px;
+}
+
+.nav-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.2s;
+}
+
+.nav-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.nav-btn.active {
+    background: white;
+    color: #667eea;
+    font-weight: 600;
+}
+
+/*-======- Main Content & Views -======-*/
+.webpilot-content {
+    flex: 1;
+    overflow-y: auto;
+    background: white;
+}
+
+.view {
+    display: none;
+    height: 100%;
+    flex-direction: column;
+}
+
+.view.active {
+    display: flex;
+}
+
+/*-======- Assistant View Styles -======-*/
+.context-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    font-weight: 600;
+    cursor: pointer;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.toggle-content {
+    padding: 12px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.tab-selector {
+    display: flex;
+    gap: 8px;
+}
+
+#webpilot-tab-selector {
+    flex-grow: 1;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    padding: 4px;
+}
+
+.webpilot-suggestions, #webpilot-confirmation-container {
+    padding: 12px;
+}
+
+.webpilot-actions {
+    padding: 12px;
+    display: flex;
+    gap: 8px;
+    border-top: 1px solid #e9ecef;
+}
+
+.action-btn {
+    flex: 1;
+}
+
+/*-======- Chat View Styles -======-*/
+#chat-view {
+    justify-content: space-between;
+}
+
+.webpilot-chat-messages {
+    flex-grow: 1;
+    padding: 12px;
+    overflow-y: auto;
+}
+
+.webpilot-chat-input-container {
+    display: flex;
+    padding: 12px;
+    border-top: 1px solid #e9ecef;
+    gap: 8px;
+}
+
+#webpilot-chat-input {
+    flex-grow: 1;
+    resize: none;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    padding: 8px;
+}
+
+/*-======- Settings View Styles -======-*/
+.settings-content {
+    padding: 16px;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+input[type="password"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.help-text {
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
+}
+
+.settings-btn {
+    width: 100%;
+    padding: 10px;
+    border-radius: 4px;
+    border: none;
+    background-color: #667eea;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.settings-btn.secondary {
+    background-color: #6c757d;
+    margin-top: 8px;
+}
+
+.status {
+    padding: 10px;
+    margin-bottom: 12px;
+    border-radius: 4px;
+    display: none;
+}
+
+.status.success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status.error {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/*-======- Shared Component Styles (from old styles.css) -======-*/
+button {
+    cursor: pointer;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    padding: 6px 12px;
+    background-color: #f8f9fa;
+    transition: background-color 0.2s;
+}
+
+button:hover {
+    background-color: #e9ecef;
+}
+
+.webpilot-accept-btn {
+    background-color: #28a745;
+    color: white;
+}
+.webpilot-accept-btn:hover {
+    background-color: #218838;
+}
+.webpilot-reject-btn {
+    background-color: #dc3545;
+    color: white;
+}
+.webpilot-reject-btn:hover {
+    background-color: #c82333;
+}
+#webpilot-clear-tab-context {
+    background-color: #dc3545;
+    color: white;
+}
+
+#webpilot-confirmation-container {
+    padding: 16px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.webpilot-diff-view {
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.diff-header {
+  padding: 10px 16px;
+  background: #f8f9fa;
+  font-weight: 600;
+  font-size: 13px;
+  color: #495057;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.diff-content {
+  display: flex;
+}
+
+.diff-pane {
+  width: 50%;
+  padding: 12px;
+}
+
+.diff-pane.original {
+  border-right: 1px solid #e9ecef;
+  background: #fff8f8;
+}
+
+.diff-pane.suggested {
+  background: #f8fff8;
+}
+
+.pane-title {
+  font-weight: 600;
+  font-size: 12px;
+  margin-bottom: 8px;
+  color: #6c757d;
+}
+
+.diff-pane.original .pane-title {
+  color: #dc3545;
+}
+
+.diff-pane.suggested .pane-title {
+  color: #28a745;
+}
+
+.diff-pane pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: inherit;
+  font-size: 13px;
+  color: #333;
+}
+
+.webpilot-confirmation-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.webpilot-suggestion {
+  padding: 12px;
+  margin-bottom: 8px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #495057;
+}
+
+.webpilot-suggestion:hover {
+  background: #e9ecef;
+}
+
+/*-======- Collapsed State -======-*/
+.webpilot-sidebar-container.is-collapsed .webpilot-header {
+    justify-content: center;
+}
+
+.webpilot-sidebar-container.is-collapsed .webpilot-title {
+    color: transparent;
+    font-size: 0;
+}
+
+.webpilot-sidebar-container.is-collapsed #webpilot-icon {
+    font-size: 24px;
+    margin: 0;
+}
+
+.webpilot-sidebar-container.is-collapsed .webpilot-nav {
+    display: none;
+}
+
+.webpilot-sidebar-container.is-collapsed .webpilot-content {
+    display: none;
+} 

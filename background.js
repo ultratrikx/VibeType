@@ -11,7 +11,7 @@ class WebPilotBackground {
   }
 
   async loadSettings() {
-    const result = await chrome.storage.sync.get(['openai_api_key']);
+    const result = await chrome.storage.local.get(['openai_api_key']);
     this.apiKey = result.openai_api_key;
   }
 
@@ -46,6 +46,15 @@ class WebPilotBackground {
         case 'getAllTabs':
           await this.handleGetAllTabs(request, sender, sendResponse);
           break;
+        case 'getSettings':
+          await this.handleGetSettings(sendResponse);
+          break;
+        case 'saveSetting':
+          await this.handleSaveSetting(request, sendResponse);
+          break;
+        case 'testApiKey':
+          await this.handleTestApiKey(sendResponse);
+          break;
         case 'updateApiKey':
           this.apiKey = request.apiKey;
           sendResponse({ success: true });
@@ -62,7 +71,8 @@ class WebPilotBackground {
   async handleGetTabContext(request, sendResponse) {
     try {
       const { tabId } = request;
-      const context = await this.extractTabContext(tabId);
+      const tab = await chrome.tabs.get(tabId);
+      const context = await this.extractTabContext(tabId, tab.url);
       sendResponse({ success: true, context });
     } catch (error) {
       sendResponse({ success: false, error: error.message });
@@ -89,24 +99,78 @@ class WebPilotBackground {
     }
   }
 
-  async extractTabContext(tabId) {
+  async extractTabContext(tabId, tabUrl) {
     try {
-      // Inject content script to extract context
-      const results = await chrome.scripting.executeScript({
-        target: { tabId: tabId },
-        function: () => {
+      let extractionFunction;
+
+      if (tabUrl && new URL(tabUrl).hostname === 'mail.google.com') {
+        extractionFunction = () => {
+          let content = '';
+          const subjectEl = document.querySelector('h2.hP');
+          const subject = subjectEl ? subjectEl.innerText : document.title;
+          const emailContainer = document.querySelector('.nH.hx');
+
+          if (emailContainer) {
+            const messageBodies = emailContainer.querySelectorAll('.a3s.aiL, .adx');
+            if (messageBodies.length > 0) {
+              messageBodies.forEach(body => {
+                content += body.innerText + '\n\n---\n\n';
+              });
+            } else {
+              content = emailContainer.innerText;
+            }
+          }
+
+          if (!content) {
+            content = document.body.innerText;
+          }
+
           return {
             title: document.title,
             url: window.location.href,
             domain: window.location.hostname,
             selection: window.getSelection().toString(),
-            content: document.body.innerText.substring(0, 2000) // Limit to 2000 chars
+            content: `Subject: ${subject}\n\n${content}`
           };
-        }
+        };
+      } else {
+        extractionFunction = () => {
+            const article = document.body.cloneNode(true);
+            const selectorsToRemove = 'header, footer, nav, aside, .noprint, .ad, .ads, .advert, [role="banner"], [role="contentinfo"], [role="navigation"], [class*="sidebar"], [id*="sidebar"], script, style';
+            article.querySelectorAll(selectorsToRemove).forEach(el => el.remove());
+    
+            let mainContentEl = article.querySelector('main, article, [role="main"]');
+            let content = '';
+        
+            if (mainContentEl) {
+                content = mainContentEl.innerText;
+            } else {
+                content = article.innerText;
+            }
+            
+            content = content.replace(/(\\r\\n|\\n|\\r){3,}/gm, "\\n\\n").trim();
+            
+            return {
+                title: document.title,
+                url: window.location.href,
+                domain: window.location.hostname,
+                selection: window.getSelection().toString(),
+                content: content
+            };
+        };
+      }
+
+      const results = await chrome.scripting.executeScript({
+        target: { tabId: tabId },
+        func: extractionFunction
       });
 
       if (results && results[0] && results[0].result) {
-        return results[0].result;
+        let result = results[0].result;
+        if (result.content.length > 15000) {
+          result.content = result.content.substring(0, 15000) + "\\n... (content truncated)";
+        }
+        return result;
       }
       
       return {
@@ -123,7 +187,7 @@ class WebPilotBackground {
         url: 'Error',
         domain: 'Error',
         selection: '',
-        content: ''
+        content: `Error extracting content: ${error.message}`
       };
     }
   }
@@ -422,7 +486,43 @@ Keep your response under 200 words unless the user specifically asks for more de
       return { success: false, error: error.message };
     }
   }
+
+  async handleGetSettings(sendResponse) {
+    const settings = await chrome.storage.local.get(['openai_api_key']);
+    sendResponse(settings);
+  }
+
+  async handleSaveSetting(request, sendResponse) {
+    try {
+      await chrome.storage.local.set({ [request.key]: request.value });
+      // Re-load settings after saving
+      await this.loadSettings(); 
+      sendResponse({ success: true });
+    } catch (error) {
+      sendResponse({ success: false, error: error.message });
+    }
+  }
+
+  async handleTestApiKey(sendResponse) {
+    if (!this.apiKey) {
+      sendResponse({ success: false, message: 'API Key not set.' });
+      return;
+    }
+    const response = await this.callOpenAI("Test: Say 'Hello World'", 1);
+    if (response.success && response.choices[0].message.content.includes('Hello World')) {
+      sendResponse({ success: true, message: 'API Key is valid and working!' });
+    } else {
+      sendResponse({ success: false, message: 'API Key is invalid or call failed.' });
+    }
+  }
 }
+
+// listen for clicks on the extension icon
+chrome.action.onClicked.addListener((tab) => {
+  if (tab.id) {
+    chrome.tabs.sendMessage(tab.id, { action: 'toggleSidebar' });
+  }
+});
 
 // Initialize the background script
 new WebPilotBackground(); 

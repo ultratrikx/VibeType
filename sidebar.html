@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebPilot Sidebar</title>
+    <link rel="stylesheet" href="sidebar.css">
+</head>
+<body>
+    <div class="webpilot-sidebar-container">
+        <div class="webpilot-header" id="webpilot-drag-handle">
+            <div class="webpilot-title">
+                <span id="webpilot-icon">✍️</span>
+                WebPilot
+            </div>
+            <div class="webpilot-nav">
+                <button class="nav-btn active" data-view="assistant">Assistant</button>
+                <button class="nav-btn" data-view="chat">Chat</button>
+                <button class="nav-btn" data-view="settings">Settings</button>
+            </div>
+        </div>
+
+        <div class="webpilot-content">
+            <!-- Assistant View -->
+            <div id="assistant-view" class="view active">
+                <div class="webpilot-context-section">
+                    <div class="context-header" data-toggle="context-info">
+                        <span>📄 Current Page</span>
+                        <span class="toggle-arrow">▼</span>
+                    </div>
+                    <div id="context-info" class="toggle-content">
+                        <!-- Content will be loaded dynamically -->
+                    </div>
+                </div>
+                <div class="webpilot-tab-context-section">
+                    <div class="context-header" data-toggle="tab-context-content">
+                        <span>🔗 Additional Tab Context</span>
+                        <span class="toggle-arrow">▼</span>
+                    </div>
+                    <div id="tab-context-content" class="toggle-content" style="display: none;">
+                        <div class="tab-selector">
+                            <select id="webpilot-tab-selector">
+                                <option value="">Select a tab for context...</option>
+                            </select>
+                            <button id="webpilot-load-tab-context">Load</button>
+                        </div>
+                        <div id="webpilot-tab-context-display" style="display: none;">
+                            <div class="context-item">
+                                <strong>Tab:</strong> <span id="tab-context-title">-</span>
+                            </div>
+                            <div class="context-item">
+                                <strong>Content:</strong> <span id="tab-context-snippet">-</span>
+                            </div>
+                            <button id="webpilot-clear-tab-context">Clear</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="webpilot-suggestions" class="webpilot-suggestions"></div>
+                <div id="webpilot-confirmation-container"></div>
+                <div class="webpilot-actions">
+                    <button class="action-btn" id="webpilot-improve">Improve</button>
+                    <button class="action-btn" id="webpilot-rewrite">Rewrite</button>
+                    <button class="action-btn" id="webpilot-elaborate">Elaborate</button>
+                </div>
+            </div>
+
+            <!-- Chat View -->
+            <div id="chat-view" class="view">
+                <div class="webpilot-chat-messages" id="webpilot-chat-messages"></div>
+                <div class="webpilot-chat-input-container">
+                    <textarea id="webpilot-chat-input" placeholder="Ask WebPilot for help..."></textarea>
+                    <button id="webpilot-chat-send">Send</button>
+                </div>
+            </div>
+
+            <!-- Settings View -->
+            <div id="settings-view" class="view">
+                <div class="settings-content">
+                    <div id="status" class="status"></div>
+                    <div class="form-group">
+                        <label for="apiKey">OpenAI API Key</label>
+                        <input type="password" id="apiKey" placeholder="sk-...">
+                        <div class="help-text">Your API key is stored locally and securely.</div>
+                    </div>
+                    <button id="saveApiKey" class="settings-btn">Save API Key</button>
+                    <button id="testApiKey" class="settings-btn secondary">Test Connection</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="sidebar.js"></script>
+</body>
+</html> 
