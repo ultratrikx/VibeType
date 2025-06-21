@@ -714,10 +714,29 @@ class WebPilotController {
     postMessageToSidebar(action, data) {
         this.sidebarIframe.contentWindow.postMessage({ action, data }, "*");
     }
-
     async sendMessageToBackground(message) {
-        return new Promise((resolve) => {
-            chrome.runtime.sendMessage(message, resolve);
+        return new Promise((resolve, reject) => {
+            // Set up a timeout
+            const timeout = setTimeout(() => {
+                reject(new Error("Background script communication timeout"));
+            }, 10000); // 10 second timeout
+
+            chrome.runtime.sendMessage(message, (response) => {
+                clearTimeout(timeout);
+
+                // Check for chrome runtime errors
+                if (chrome.runtime.lastError) {
+                    reject(new Error(chrome.runtime.lastError.message));
+                    return;
+                }
+
+                resolve(
+                    response || {
+                        success: false,
+                        error: "No response received",
+                    }
+                );
+            });
         });
     }
 
@@ -842,7 +861,6 @@ class WebPilotController {
             this.handleTextAction(action);
         }
     }
-
     /**
      * Analyze the current webpage using GPT embeddings
      * @param {string} query - The query to use for context retrieval
@@ -857,26 +875,18 @@ class WebPilotController {
             // Get the current HTML content
             const htmlContent = document.documentElement.outerHTML;
 
-            // Process the HTML with the content processor directly in this page
-            // First ensure the ContentProcessor is available
-            await this.ensureProcessorAvailable();
-
-            // Create a content processor
-            const processor = new ContentProcessor({
-                apiKey: await this.getApiKey(),
-                chunkSize: 750,
-            });
-
-            // Process the content
-            const result = await processor.getFullContextWithEmbeddings({
+            // Delegate to background script for processing (avoids CORS issues)
+            const response = await this.sendMessageToBackground({
+                action: "analyzeWebpage",
                 html: htmlContent,
                 query: query || "Extract most important information",
-                topK: 5,
+                url: window.location.href,
+                title: document.title,
             });
 
-            if (result.success) {
+            if (response.success) {
                 // Store the context for use in other functions
-                this.additionalContext = result.context;
+                this.additionalContext = response.context;
 
                 this.postMessageToSidebar("updateTabContext", {
                     context: this.additionalContext,
@@ -884,7 +894,7 @@ class WebPilotController {
 
                 return this.additionalContext;
             } else {
-                throw new Error(result.error || "Analysis failed");
+                throw new Error(response.error || "Analysis failed");
             }
         } catch (error) {
             console.error("Webpage analysis failed:", error);
@@ -1248,28 +1258,18 @@ class WebPilotController {
         console.log("handleFloatingToolbarAction called with:", action);
 
         if (action === "addContext") {
-            alert("Add context clicked!"); // Simple test
             this.showContextOptions();
             return;
         }
 
         if (!this.activeElement) {
             console.log("No active element found");
-            alert("No active element found!"); // Simple test
             this.showFloatingError("Please focus on a text field first");
             return;
         }
 
         console.log("Active element:", this.activeElement);
         console.log("Input text:", this.getInputText());
-
-        // Simple test - just show an alert for now
-        alert(
-            `Processing ${action} for text: "${this.getInputText().substring(
-                0,
-                50
-            )}..."`
-        );
 
         // Map floating toolbar actions to text actions and use the floating version
         const actionMap = {
@@ -1319,8 +1319,8 @@ class WebPilotController {
         // Set processing flag and show loading
         this.isProcessing = true;
         this.showFloatingLoading();
-
         try {
+            console.log("Sending message to background script...");
             const response = await this.sendMessageToBackground({
                 action: action,
                 text: originalText,
@@ -1328,73 +1328,52 @@ class WebPilotController {
                 additionalContext: this.additionalContext,
             });
 
+            console.log("Received response:", response);
             if (response && response.success) {
                 const suggestedText =
                     response.improvedText ||
                     response.rewrittenText ||
                     response.elaboratedText;
 
+                console.log("Suggested text:", suggestedText);
+
                 if (suggestedText && suggestedText.trim().length > 0) {
+                    console.log("Calling showFloatingPreview...");
                     this.showFloatingPreview(originalText, suggestedText);
                 } else {
+                    console.log("No valid suggested text");
                     this.showFloatingError("No suggestions received");
                 }
             } else {
                 const errorMessage =
                     response?.error || "Failed to process text";
+                console.error("Background script error:", errorMessage);
                 this.showFloatingError(errorMessage);
             }
         } catch (error) {
             console.error("Error in floating toolbar action:", error);
-            this.showFloatingError(
-                `Error: ${error.message || "Unknown error occurred"}`
-            );
+
+            // Show more specific error messages
+            if (error.message.includes("timeout")) {
+                this.showFloatingError("Request timed out. Please try again.");
+            } else if (error.message.includes("channel closed")) {
+                this.showFloatingError(
+                    "Connection lost. Please reload the page."
+                );
+            } else {
+                this.showFloatingError(
+                    `Error: ${error.message || "Unknown error occurred"}`
+                );
+            }
         } finally {
             // Always clear processing flag
             this.isProcessing = false;
         }
     }
-    showFloatingLoading() {
-        console.log("showFloatingLoading called");
-        // Create a small loading indicator
-        const loader = document.createElement("div");
-        loader.id = "webpilot-floating-loader";
-        loader.innerHTML = `
-            <div style="
-                position: absolute;
-                z-index: 1000000;
-                background: rgba(0,0,0,0.8);
-                color: white;
-                padding: 4px 8px;
-                border-radius: 4px;
-                font-size: 12px;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            ">Processing...</div>
-        `;
+    showFloatingLoading(message = "Processing...") {
+        console.log("showFloatingLoading called with message:", message);
 
-        const position = this.getCaretPosition(this.activeElement);
-        if (position) {
-            loader.style.left = `${position.x}px`;
-            loader.style.top = `${position.y - 30}px`;
-        } else {
-            // Fallback positioning
-            loader.style.left = "50px";
-            loader.style.top = "50px";
-        }
-
-        document.body.appendChild(loader);
-        console.log("Loading indicator added to DOM");
-
-        // Auto remove after 10 seconds
-        setTimeout(() => {
-            if (loader.parentNode) {
-                loader.parentNode.removeChild(loader);
-            }
-        }, 10000);
-    }
-
-    showFloatingPreview(originalText, suggestedText) {
-        // Remove any existing loader
+        // Remove any existing loader first
         const existingLoader = document.getElementById(
             "webpilot-floating-loader"
         );
@@ -1402,13 +1381,77 @@ class WebPilotController {
             existingLoader.remove();
         }
 
-        // Create preview popup
+        // Create a small loading indicator
+        const loader = document.createElement("div");
+        loader.id = "webpilot-floating-loader";
+        loader.innerHTML = `
+            <div style="
+                position: fixed;
+                z-index: 1000000;
+                background: rgba(0,0,0,0.8);
+                color: white;
+                padding: 8px 12px;
+                border-radius: 6px;
+                font-size: 13px;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+                max-width: 300px;
+            ">${message}</div>
+        `;
+
+        const position = this.getCaretPosition(this.activeElement);
+        if (position) {
+            loader.style.left = `${Math.min(
+                position.x,
+                window.innerWidth - 320
+            )}px`;
+            loader.style.top = `${position.y - 50}px`;
+        } else {
+            // Fallback positioning - center of screen
+            loader.style.left = "50%";
+            loader.style.top = "50%";
+            loader.style.transform = "translate(-50%, -50%)";
+        }
+
+        document.body.appendChild(loader);
+        console.log("Loading indicator added to DOM");
+
+        // Auto remove after 15 seconds
+        setTimeout(() => {
+            if (loader.parentNode) {
+                loader.parentNode.removeChild(loader);
+            }
+        }, 15000);
+    }
+    showFloatingPreview(originalText, suggestedText) {
+        console.log("=== showFloatingPreview START ===");
+        console.log("showFloatingPreview called with:", {
+            originalText,
+            suggestedText,
+        });
+
+        // Remove any existing loader and preview
+        const existingLoader = document.getElementById(
+            "webpilot-floating-loader"
+        );
+        if (existingLoader) {
+            existingLoader.remove();
+            console.log("Removed existing loader");
+        }
+
+        const existingPreview = document.getElementById(
+            "webpilot-floating-preview"
+        );
+        if (existingPreview) {
+            existingPreview.remove();
+            console.log("Removed existing preview");
+        } // Create preview popup
         const preview = document.createElement("div");
         preview.id = "webpilot-floating-preview";
+        preview.style.position = "fixed";
+        preview.style.zIndex = "1000000";
         preview.innerHTML = `
             <div style="
-                position: absolute;
-                z-index: 1000000;
                 background: white;
                 border: 1px solid #e1e5e9;
                 border-radius: 8px;
@@ -1421,7 +1464,7 @@ class WebPilotController {
                 <div style="font-weight: 600; margin-bottom: 8px; color: #374151;">Suggested Change:</div>
                 <div style="background: #f9fafb; padding: 8px; border-radius: 4px; margin-bottom: 8px; font-size: 13px; max-height: 100px; overflow-y: auto;">${suggestedText}</div>
                 <div style="display: flex; gap: 8px; justify-content: flex-end;">
-                    <button onclick="this.parentElement.parentElement.parentElement.remove()" style="
+                    <button class="preview-cancel-btn" style="
                         background: #6b7280;
                         color: white;
                         border: none;
@@ -1430,10 +1473,7 @@ class WebPilotController {
                         cursor: pointer;
                         font-size: 12px;
                     ">Cancel</button>
-                    <button onclick="window.webPilotController.acceptFloatingChange('${suggestedText.replace(
-                        /'/g,
-                        "\\'"
-                    )}'); this.parentElement.parentElement.parentElement.remove()" style="
+                    <button class="preview-accept-btn" style="
                         background: #3b82f6;
                         color: white;
                         border: none;
@@ -1446,16 +1486,61 @@ class WebPilotController {
             </div>
         `;
 
-        const position = this.getCaretPosition(this.activeElement);
-        preview.style.left = `${position.x}px`;
-        preview.style.top = `${position.y - 150}px`;
+        // Add event listeners for the buttons
+        const cancelBtn = preview.querySelector(".preview-cancel-btn");
+        const acceptBtn = preview.querySelector(".preview-accept-btn");
 
+        cancelBtn.addEventListener("click", () => {
+            console.log("Cancel button clicked");
+            preview.remove();
+        });
+
+        acceptBtn.addEventListener("click", () => {
+            console.log("Accept button clicked");
+            this.acceptFloatingChange(suggestedText);
+            preview.remove();
+        });
+        const position = this.getCaretPosition(this.activeElement);
+        console.log("Preview position:", position);
+
+        // Calculate positioning to ensure preview stays in viewport
+        let left = 50;
+        let top = 50;
+
+        if (position) {
+            left = Math.min(position.x, window.innerWidth - 320); // 320 = max-width + padding
+            top = Math.max(position.y - 150, 10); // Ensure it doesn't go above viewport
+
+            // If there's not enough space above, position below
+            if (top < 10) {
+                top = position.y + 30;
+            }
+
+            // Ensure it doesn't go below viewport
+            if (top + 200 > window.innerHeight) {
+                top = window.innerHeight - 200;
+            }
+        }
+
+        preview.style.left = `${Math.max(left, 10)}px`;
+        preview.style.top = `${Math.max(top, 10)}px`;
         document.body.appendChild(preview);
+        console.log("Preview added to DOM at position:", { left, top });
+        console.log(
+            "Preview element in DOM:",
+            document.getElementById("webpilot-floating-preview")
+        );
+        console.log(
+            "Preview is visible:",
+            preview.offsetWidth > 0 && preview.offsetHeight > 0
+        );
+        console.log("=== showFloatingPreview END ===");
 
         // Auto remove after 30 seconds
         setTimeout(() => {
             if (preview.parentNode) {
                 preview.parentNode.removeChild(preview);
+                console.log("Preview auto-removed");
             }
         }, 30000);
     }
@@ -1497,12 +1582,62 @@ class WebPilotController {
         error.style.top = `${position.y - 30}px`;
 
         document.body.appendChild(error);
-
         setTimeout(() => {
             if (error.parentNode) {
                 error.parentNode.removeChild(error);
             }
         }, 3000);
+    }
+
+    showFloatingSuccess(message) {
+        // Remove any existing loader
+        const existingLoader = document.getElementById(
+            "webpilot-floating-loader"
+        );
+        if (existingLoader) {
+            existingLoader.remove();
+        }
+
+        const success = document.createElement("div");
+        success.innerHTML = `
+            <div style="
+                position: fixed;
+                z-index: 1000000;
+                background: #d1fae5;
+                color: #065f46;
+                padding: 8px 12px;
+                border-radius: 6px;
+                font-size: 13px;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                border: 1px solid #a7f3d0;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                max-width: 300px;
+            ">${message}</div>
+        `;
+
+        const position = this.getCaretPosition(this.activeElement);
+        success.style.left = `${Math.min(
+            position.x,
+            window.innerWidth - 320
+        )}px`;
+        success.style.top = `${position.y - 50}px`;
+
+        document.body.appendChild(success);
+
+        setTimeout(() => {
+            if (success.parentNode) {
+                success.parentNode.removeChild(success);
+            }
+        }, 4000);
+    }
+
+    hideFloatingLoading() {
+        const existingLoader = document.getElementById(
+            "webpilot-floating-loader"
+        );
+        if (existingLoader) {
+            existingLoader.remove();
+        }
     }
 
     showContextOptions() {
@@ -1644,11 +1779,13 @@ class WebPilotController {
 
         document.body.appendChild(menu);
     }
-
     async loadTabContextFromFloating(tabId) {
         try {
             const text = this.getInputText();
             const query = text || "Extract relevant information";
+
+            // Show loading message
+            this.showFloatingLoading("Loading context from selected tab...");
 
             const response = await this.sendMessageToBackground({
                 action: "enhancedContentExtraction",
@@ -1656,12 +1793,26 @@ class WebPilotController {
                 query: query,
             });
 
+            // Hide loading
+            this.hideFloatingLoading();
+
             if (response.success) {
                 this.additionalContext = response;
+
+                // Show confirmation that context was loaded
+                this.showFloatingSuccess(
+                    "Context loaded! You can now use Elaborate, Improve, or Rewrite with this context."
+                );
+
+                // Optionally show the floating toolbar again if it was hidden
+                setTimeout(() => {
+                    this.showFloatingToolbarIfAppropriate();
+                }, 2000);
             } else {
                 this.showFloatingError("Failed to load tab context");
             }
         } catch (error) {
+            this.hideFloatingLoading();
             this.showFloatingError("Error loading context");
         }
     }
@@ -1670,4 +1821,9 @@ class WebPilotController {
 }
 
 // Make controller globally accessible for floating toolbar callbacks
-window.webPilotController = new WebPilotController();
+// Prevent multiple instances
+if (!window.webPilotController) {
+    window.webPilotController = new WebPilotController();
+    // Also expose as webpilot for convenience
+    window.webpilot = window.webPilotController;
+}

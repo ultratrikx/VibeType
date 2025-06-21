@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Debug Preview Dialog</title>
+    </head>
+    <body>
+        <h1>Debug Preview Dialog</h1>
+        <p>
+            This page is specifically for debugging the AI preview dialog
+            functionality.
+        </p>
+
+        <textarea
+            id="test-area"
+            style="width: 100%; height: 200px; padding: 10px; margin: 20px 0"
+        >
+Type some text here to test the floating toolbar. Try typing and then pausing, or select some text to see the toolbar appear.
+    </textarea
+        >
+
+        <input
+            type="text"
+            id="test-input"
+            placeholder="Type here to test on input fields"
+            style="width: 100%; padding: 10px; margin: 10px 0"
+        />
+
+        <div style="margin: 20px 0">
+            <button onclick="testPreviewDialog()">Test Preview Dialog</button>
+            <button onclick="simulateAIResponse()">Simulate AI Response</button>
+            <button onclick="checkClasses()">Check Classes Loaded</button>
+            <button onclick="clearConsole()">Clear Console</button>
+        </div>
+
+        <div
+            id="debug-output"
+            style="
+                background: #f5f5f5;
+                padding: 10px;
+                margin: 20px 0;
+                font-family: monospace;
+                white-space: pre-wrap;
+                max-height: 300px;
+                overflow-y: auto;
+            "
+        ></div>
+
+        <script>
+            function log(message) {
+                const output = document.getElementById("debug-output");
+                output.textContent +=
+                    new Date().toLocaleTimeString() + ": " + message + "\n";
+                output.scrollTop = output.scrollHeight;
+                console.log(message);
+            }
+
+            function clearConsole() {
+                document.getElementById("debug-output").textContent = "";
+                console.clear();
+                log("Console cleared");
+            }
+
+            function testPreviewDialog() {
+                log("Testing preview dialog...");
+
+                // Remove any existing preview first
+                const existing = document.getElementById(
+                    "webpilot-floating-preview"
+                );
+                if (existing) {
+                    existing.remove();
+                    log("Removed existing preview dialog");
+                }
+
+                // Simulate the preview dialog creation exactly as in content.js
+                const preview = document.createElement("div");
+                preview.id = "webpilot-floating-preview";
+                preview.style.position = "fixed";
+                preview.style.zIndex = "1000000";
+                preview.innerHTML = `
+                <div style="
+                    background: white;
+                    border: 1px solid #e1e5e9;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                    max-width: 300px;
+                    padding: 12px;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    font-size: 14px;
+                ">
+                    <div style="font-weight: 600; margin-bottom: 8px; color: #374151;">Suggested Change:</div>
+                    <div style="background: #f9fafb; padding: 8px; border-radius: 4px; margin-bottom: 8px; font-size: 13px; max-height: 100px; overflow-y: auto;">This is a test suggestion text that should appear in the preview dialog.</div>
+                    <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                        <button class="preview-cancel-btn" style="
+                            background: #6b7280;
+                            color: white;
+                            border: none;
+                            padding: 4px 12px;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-size: 12px;
+                        ">Cancel</button>
+                        <button class="preview-accept-btn" style="
+                            background: #3b82f6;
+                            color: white;
+                            border: none;
+                            padding: 4px 12px;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-size: 12px;
+                        ">Accept</button>
+                    </div>
+                </div>
+            `;
+
+                // Add event listeners for the buttons
+                const cancelBtn = preview.querySelector(".preview-cancel-btn");
+                const acceptBtn = preview.querySelector(".preview-accept-btn");
+
+                if (cancelBtn) {
+                    cancelBtn.addEventListener("click", () => {
+                        log("Cancel button clicked");
+                        preview.remove();
+                    });
+                    log("Cancel button event listener added");
+                } else {
+                    log("ERROR: Cancel button not found");
+                }
+
+                if (acceptBtn) {
+                    acceptBtn.addEventListener("click", () => {
+                        log("Accept button clicked");
+                        preview.remove();
+                    });
+                    log("Accept button event listener added");
+                } else {
+                    log("ERROR: Accept button not found");
+                }
+
+                // Position at center of screen for visibility
+                preview.style.left = "50%";
+                preview.style.top = "50%";
+                preview.style.transform = "translate(-50%, -50%)";
+
+                document.body.appendChild(preview);
+                log("Preview dialog created and added to DOM");
+                log(
+                    `Preview element: ${preview.outerHTML.substring(0, 100)}...`
+                );
+            }
+            function simulateAIResponse() {
+                log("Simulating AI response...");
+
+                if (
+                    window.webpilot &&
+                    typeof window.webpilot.showFloatingPreview === "function"
+                ) {
+                    window.webpilot.showFloatingPreview(
+                        "Original text to be replaced",
+                        "This is the AI-generated improved text that should replace the original."
+                    );
+                    log("Called webpilot.showFloatingPreview method");
+                } else if (
+                    window.webPilotController &&
+                    typeof window.webPilotController.showFloatingPreview ===
+                        "function"
+                ) {
+                    window.webPilotController.showFloatingPreview(
+                        "Original text to be replaced",
+                        "This is the AI-generated improved text that should replace the original."
+                    );
+                    log("Called webPilotController.showFloatingPreview method");
+                } else {
+                    log(
+                        "WebPilot toolbar not found or showFloatingPreview method not available"
+                    );
+                    log(`window.webpilot: ${window.webpilot}`);
+                    log(
+                        `window.webPilotController: ${window.webPilotController}`
+                    );
+                    if (window.webpilot) {
+                        log(
+                            `showFloatingPreview method: ${typeof window
+                                .webpilot.showFloatingPreview}`
+                        );
+                        log(
+                            "Available methods: " +
+                                Object.getOwnPropertyNames(window.webpilot)
+                        );
+                    }
+                    if (window.webPilotController) {
+                        log(
+                            `showFloatingPreview method: ${typeof window
+                                .webPilotController.showFloatingPreview}`
+                        );
+                        log(
+                            "Available methods: " +
+                                Object.getOwnPropertyNames(
+                                    window.webPilotController
+                                )
+                        );
+                    }
+                }
+            }
+
+            function checkClasses() {
+                log("Checking if classes are loaded...");
+
+                const classes = [
+                    "HTMLParser",
+                    "ContentChunker",
+                    "SemanticSearcher",
+                    "ContentProcessor",
+                ];
+                classes.forEach((className) => {
+                    if (window[className]) {
+                        log(`✓ ${className} is available`);
+                    } else {
+                        log(`✗ ${className} is NOT available`);
+                    }
+                });
+
+                if (window.webpilot) {
+                    log("✓ WebPilot toolbar is available");
+                    log(`WebPilot type: ${typeof window.webpilot}`);
+                    if (typeof window.webpilot === "object") {
+                        log(
+                            "WebPilot methods: " +
+                                Object.getOwnPropertyNames(
+                                    window.webpilot
+                                ).join(", ")
+                        );
+                    }
+                } else {
+                    log("✗ WebPilot toolbar is NOT available");
+                }
+
+                // Check Chrome extension environment
+                if (typeof chrome !== "undefined" && chrome.runtime) {
+                    log("✓ Chrome extension environment detected");
+                } else {
+                    log("✗ Chrome extension environment NOT detected");
+                }
+            }
+
+            // Auto-check classes on load
+            setTimeout(() => {
+                log("=== Initial Status Check ===");
+                checkClasses();
+            }, 1000);
+
+            // Initial log
+            log("Debug page loaded. Ready for testing.");
+        </script>
+    </body>
+</html>

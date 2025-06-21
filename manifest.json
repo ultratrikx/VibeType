@@ -21,6 +21,7 @@
                 "content_chunker.js",
                 "semantic_search.js",
                 "content_processor.js",
+                "inject_processor.js",
                 "content.js"
             ],
             "css": ["styles.css"],

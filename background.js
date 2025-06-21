@@ -53,6 +53,9 @@ class WebPilotBackground {
                         sendResponse
                     );
                     break;
+                case "analyzeWebpage":
+                    await this.handleAnalyzeWebpage(request, sendResponse);
+                    break;
                 case "searchWebContent":
                     await this.handleSearchWebContent(request, sendResponse);
                     break;
@@ -211,6 +214,119 @@ class WebPilotBackground {
             console.error("Web content search failed:", error);
             sendResponse({ success: false, error: error.message });
         }
+    }
+
+    async handleAnalyzeWebpage(request, sendResponse) {
+        try {
+            const { html, query, url, title } = request;
+
+            // Check if API key is available
+            if (!this.apiKey) {
+                throw new Error(
+                    "OpenAI API key is required. Please set it in the extension settings."
+                );
+            }
+
+            // Extract basic text content from HTML (simple approach)
+            const textContent = this.extractTextFromHTML(html);
+
+            // Truncate content if too long (GPT has token limits)
+            const maxContentLength = 8000; // Conservative limit
+            const truncatedContent =
+                textContent.length > maxContentLength
+                    ? textContent.substring(0, maxContentLength) + "..."
+                    : textContent;
+
+            // Create prompt for analysis
+            const analysisPrompt = `
+Analyze the following webpage content and extract the most relevant information based on the query: "${query}"
+
+Title: ${title}
+URL: ${url}
+
+Content:
+${truncatedContent}
+
+Please provide:
+1. A summary of the main topics
+2. Key points that are most relevant to the query
+3. Important details that could be useful as context
+
+Format your response as a JSON object with the following structure:
+{
+    "summary": "Brief summary of the content",
+    "key_points": ["point 1", "point 2", "point 3"],
+    "relevant_details": "Detailed information relevant to the query",
+    "title": "${title}",
+    "url": "${url}"
+}
+`;
+
+            // Call OpenAI for analysis
+            const response = await this.callOpenAI(analysisPrompt, 1);
+
+            if (response.success && response.choices && response.choices[0]) {
+                try {
+                    const analysisText = response.choices[0].message.content;
+                    const analysisResult = JSON.parse(analysisText);
+
+                    // Create context object similar to what ContentProcessor would return
+                    const context = {
+                        title: analysisResult.title || title,
+                        url: url,
+                        summary: analysisResult.summary,
+                        key_points: analysisResult.key_points || [],
+                        relevant_details: analysisResult.relevant_details,
+                        most_relevant_chunks: [analysisResult.relevant_details], // Compatibility
+                        metadata: {
+                            analyzed_at: new Date().toISOString(),
+                            query: query,
+                        },
+                    };
+
+                    sendResponse({ success: true, context });
+                } catch (parseError) {
+                    // If JSON parsing fails, create a simpler context
+                    const context = {
+                        title: title,
+                        url: url,
+                        summary: response.choices[0].message.content,
+                        most_relevant_chunks: [
+                            response.choices[0].message.content,
+                        ],
+                        metadata: {
+                            analyzed_at: new Date().toISOString(),
+                            query: query,
+                        },
+                    };
+                    sendResponse({ success: true, context });
+                }
+            } else {
+                throw new Error(response.error || "Analysis failed");
+            }
+        } catch (error) {
+            console.error("Webpage analysis failed:", error);
+            sendResponse({ success: false, error: error.message });
+        }
+    }
+
+    // Helper method to extract text from HTML
+    extractTextFromHTML(html) {
+        // Remove script and style elements
+        let cleanHtml = html.replace(
+            /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+            ""
+        );
+        cleanHtml = cleanHtml.replace(
+            /<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi,
+            ""
+        );
+
+        // Remove HTML tags
+        const textContent = cleanHtml.replace(/<[^>]*>/g, " ");
+
+        // Clean up whitespace
+        return textContent.replace(/\s+/g, " ").trim();
     }
 
     async getTabHTML(tabId) {
