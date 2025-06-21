@@ -311,6 +311,39 @@ class WebPilotBackground {
         }
     }
 
+    // Combined enhanced and basic context fetching
+    async getCombinedTabContext(tabId, query = null) {
+        try {
+            // Try enhanced extraction first
+            const htmlContent = await this.getTabHTML(tabId);
+            const apiResponse = await fetch(`${this.scrapeApiUrl}/process`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    html: htmlContent,
+                    query: query || "Extract main content and key information",
+                    chunk_size: 750,
+                    top_k: 5,
+                }),
+            });
+
+            if (apiResponse.ok) {
+                const result = await apiResponse.json();
+                return { success: true, context: result, enhanced: true };
+            }
+        } catch (error) {
+            console.log("Enhanced extraction failed:", error);
+        }
+
+        // Fallback to basic
+        try {
+            const basicResult = await this.extractTabContext(tabId);
+            return { success: true, context: basicResult, enhanced: false };
+        } catch (error) {
+            return { success: false, error: error.message };
+        }
+    }
+
     async handleGetSuggestions(request, sendResponse) {
         if (!this.apiKey) {
             sendResponse({
@@ -447,7 +480,9 @@ class WebPilotBackground {
         } else {
             sendResponse({ success: false, error: response.error });
         }
-    }    buildSuggestionPrompt(text, context, additionalContext = null) {
+    }
+
+    buildSuggestionPrompt(text, context, additionalContext = null) {
         let contextInfo = `Context:
 - Page title: ${context.title}
 - Website: ${context.domain}
@@ -455,7 +490,10 @@ class WebPilotBackground {
 - Selected text: ${context.selection || "None"}`;
 
         if (additionalContext) {
-            contextInfo += this.buildEnhancedContextInfo(additionalContext, "suggestions");
+            contextInfo += this.buildEnhancedContextInfo(
+                additionalContext,
+                "suggestions"
+            );
         }
 
         return `You are WebPilot, an AI writing assistant. The user is typing in a text field on a webpage.
@@ -472,14 +510,19 @@ Provide 3 different suggestions to complete or improve the current sentence/phra
 5. Consider both the current page context and any additional context provided
 
 Return only the suggestions, one per line, without numbering or additional formatting.`;
-    }    buildImprovePrompt(text, context, additionalContext = null) {
+    }
+
+    buildImprovePrompt(text, context, additionalContext = null) {
         let contextInfo = `Context:
 - Page title: ${context.title}
 - Website: ${context.domain}
 - URL: ${context.url}`;
 
         if (additionalContext) {
-            contextInfo += this.buildEnhancedContextInfo(additionalContext, "improvement");
+            contextInfo += this.buildEnhancedContextInfo(
+                additionalContext,
+                "improvement"
+            );
         }
 
         return `You are WebPilot, an AI writing assistant. Improve the following text for clarity, grammar, and style while maintaining the original meaning and tone.
@@ -496,14 +539,19 @@ Please improve this text by:
 5. Considering any additional context provided for better relevance
 
 Return only the improved text without any explanations or additional formatting.`;
-    }    buildRewritePrompt(text, context, additionalContext = null) {
+    }
+
+    buildRewritePrompt(text, context, additionalContext = null) {
         let contextInfo = `Context:
 - Page title: ${context.title}
 - Website: ${context.domain}
 - URL: ${context.url}`;
 
         if (additionalContext) {
-            contextInfo += this.buildEnhancedContextInfo(additionalContext, "rewriting");
+            contextInfo += this.buildEnhancedContextInfo(
+                additionalContext,
+                "rewriting"
+            );
         }
 
         return `You are WebPilot, an AI writing assistant. Rewrite the following text in a different way while keeping the same meaning.
@@ -520,14 +568,19 @@ Please rewrite this text by:
 5. Considering any additional context for better relevance
 
 Return only the rewritten text without any explanations or additional formatting.`;
-    }    buildElaboratePrompt(text, context, additionalContext = null) {
+    }
+
+    buildElaboratePrompt(text, context, additionalContext = null) {
         let contextInfo = `Context:
 - Page title: ${context.title}
 - Website: ${context.domain}
 - URL: ${context.url}`;
 
         if (additionalContext) {
-            contextInfo += this.buildEnhancedContextInfo(additionalContext, "elaboration");
+            contextInfo += this.buildEnhancedContextInfo(
+                additionalContext,
+                "elaboration"
+            );
         }
 
         return `You are WebPilot, an AI writing assistant. Elaborate on the following text by adding more detail, examples, or explanations.
@@ -544,7 +597,9 @@ Please elaborate on this text by:
 5. Using any additional context provided for better elaboration
 
 Return only the elaborated text without any explanations or additional formatting.`;
-    }    buildChatPrompt(message, context, currentText, additionalContext = null) {
+    }
+
+    buildChatPrompt(message, context, currentText, additionalContext = null) {
         let contextInfo = `Context:
 - Page title: ${context.title}
 - Website: ${context.domain}
@@ -552,7 +607,10 @@ Return only the elaborated text without any explanations or additional formattin
 - Current text in the input field: "${currentText || "Empty"}"`;
 
         if (additionalContext) {
-            contextInfo += this.buildEnhancedContextInfo(additionalContext, "chat");
+            contextInfo += this.buildEnhancedContextInfo(
+                additionalContext,
+                "chat"
+            );
         }
 
         return `You are WebPilot, an AI writing assistant helping a user write better content on a webpage.
@@ -566,9 +624,11 @@ Please provide a helpful, concise response that assists the user with their writ
 Consider both the current page context and any additional context provided to give more relevant and comprehensive assistance.
 
 Keep your response under 200 words unless the user specifically asks for more detail.`;
-    }    buildEnhancedContextInfo(additionalContext, taskType) {
+    }
+
+    buildEnhancedContextInfo(additionalContext, taskType) {
         if (!additionalContext) return "";
-        
+
         let contextInfo = `
 
 Additional Context from other tab:
@@ -576,21 +636,30 @@ Additional Context from other tab:
 - Tab URL: ${additionalContext.url || "N/A"}`;
 
         // Check if we have enhanced content with chunks
-        if (additionalContext.most_relevant_chunks && additionalContext.most_relevant_chunks.length > 0) {
+        if (
+            additionalContext.most_relevant_chunks &&
+            additionalContext.most_relevant_chunks.length > 0
+        ) {
             // Use the enhanced chunks for better context
             contextInfo += `
 - Enhanced content analysis performed
 - Total content chunks analyzed: ${additionalContext.chunks?.length || 0}
-- Most relevant sections (top ${additionalContext.most_relevant_chunks.length}):`;
+- Most relevant sections (top ${
+                additionalContext.most_relevant_chunks.length
+            }):`;
 
             // Add the most relevant chunks with their relevance scores
             additionalContext.most_relevant_chunks.forEach((chunk, index) => {
-                const relevancePercentage = (chunk.similarity_score * 100).toFixed(1);
+                const relevancePercentage = (
+                    chunk.similarity_score * 100
+                ).toFixed(1);
                 contextInfo += `
   
   Section ${index + 1} (${relevancePercentage}% relevant):
   Title: ${chunk.title || "Untitled"}
-  Content: ${chunk.content.substring(0, 400)}${chunk.content.length > 400 ? "..." : ""}`;
+  Content: ${chunk.content.substring(0, 400)}${
+                    chunk.content.length > 400 ? "..." : ""
+                }`;
             });
 
             // Add specific guidance based on task type
@@ -615,7 +684,9 @@ Note: Consider the context from these sections to provide more informed and rele
             // Add processing metadata if available
             if (additionalContext.metadata) {
                 contextInfo += `
-- Content processing: ${additionalContext.metadata.search_type || "semantic"} search used`;
+- Content processing: ${
+                    additionalContext.metadata.search_type || "semantic"
+                } search used`;
                 if (additionalContext.fallback) {
                     contextInfo += ` (fallback mode)`;
                 }
@@ -624,8 +695,10 @@ Note: Consider the context from these sections to provide more informed and rele
             // Fallback to basic content if no enhanced chunks available
             contextInfo += `
 - Basic content extraction:
-  ${additionalContext.content.substring(0, 500)}${additionalContext.content.length > 500 ? "..." : ""}`;
-            
+  ${additionalContext.content.substring(0, 500)}${
+                additionalContext.content.length > 500 ? "..." : ""
+            }`;
+
             if (additionalContext.fallback) {
                 contextInfo += `
 - Note: Enhanced processing failed, using basic extraction`;
@@ -634,7 +707,6 @@ Note: Consider the context from these sections to provide more informed and rele
             contextInfo += `
 - Content: Unable to extract meaningful content`;
         }
-
         return contextInfo;
     }
 
@@ -684,6 +756,7 @@ Note: Consider the context from these sections to provide more informed and rele
             return { success: false, error: error.message };
         }
     }
+
     async handleGetSettings(sendResponse) {
         const settings = await chrome.storage.local.get([
             "openai_api_key",

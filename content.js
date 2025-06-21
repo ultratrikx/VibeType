@@ -84,7 +84,15 @@ class WebPilotController {
             case "improveText":
             case "rewriteText":
             case "elaborateText":
-                this.handleTextAction(action);
+                // Use enhanced processing if we have enhanced context
+                if (
+                    this.additionalContext &&
+                    this.additionalContext.most_relevant_chunks
+                ) {
+                    await this.handleEnhancedTextAction(action);
+                } else {
+                    this.handleTextAction(action);
+                }
                 break;
             case "acceptChange":
                 this.setInputText(data.newText);
@@ -283,20 +291,24 @@ class WebPilotController {
         }
 
         // Try to find the tab by title/URL to refresh its content
-        const tabs = await this.sendMessageToBackground({ action: "getAllTabs" });
+        const tabs = await this.sendMessageToBackground({
+            action: "getAllTabs",
+        });
         if (!tabs.success) return false;
 
-        const matchingTab = tabs.tabs.find(tab => 
-            tab.title === this.additionalContext.title || 
-            tab.url === this.additionalContext.url
+        const matchingTab = tabs.tabs.find(
+            (tab) =>
+                tab.title === this.additionalContext.title ||
+                tab.url === this.additionalContext.url
         );
 
         if (matchingTab) {
-            const refreshQuery = query || "Extract updated content and key information";
+            const refreshQuery =
+                query || "Extract updated content and key information";
             const refreshResponse = await this.sendMessageToBackground({
                 action: "enhancedContentExtraction",
                 tabId: matchingTab.id,
-                query: refreshQuery
+                query: refreshQuery,
             });
 
             if (refreshResponse.success) {
@@ -318,9 +330,12 @@ class WebPilotController {
         }
 
         const originalText = this.getInputText();
-        
+
         // If we have enhanced context, try to refresh it with a query relevant to the action
-        if (this.additionalContext && this.additionalContext.most_relevant_chunks) {
+        if (
+            this.additionalContext &&
+            this.additionalContext.most_relevant_chunks
+        ) {
             this.postMessageToSidebar("showLoading", {
                 message: "Refreshing context for better analysis...",
             });
@@ -330,16 +345,28 @@ class WebPilotController {
                 // Generate context query based on action and current text
                 switch (action) {
                     case "improveText":
-                        actionQuery = `Find information relevant to improving: "${originalText.substring(0, 100)}"}`;
+                        actionQuery = `Find information relevant to improving: "${originalText.substring(
+                            0,
+                            100
+                        )}"}`;
                         break;
                     case "rewriteText":
-                        actionQuery = `Find context and alternatives for: "${originalText.substring(0, 100)}"}`;
+                        actionQuery = `Find context and alternatives for: "${originalText.substring(
+                            0,
+                            100
+                        )}"}`;
                         break;
                     case "elaborateText":
-                        actionQuery = `Find detailed information to elaborate on: "${originalText.substring(0, 100)}"}`;
+                        actionQuery = `Find detailed information to elaborate on: "${originalText.substring(
+                            0,
+                            100
+                        )}"}`;
                         break;
                     default:
-                        actionQuery = `Find information relevant to: "${originalText.substring(0, 100)}"}`;
+                        actionQuery = `Find information relevant to: "${originalText.substring(
+                            0,
+                            100
+                        )}"}`;
                 }
             }
 
