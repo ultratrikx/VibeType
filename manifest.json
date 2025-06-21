@@ -16,7 +16,13 @@
     "content_scripts": [
         {
             "matches": ["<all_urls>"],
-            "js": ["content.js"],
+            "js": [
+                "html_parser.js",
+                "content_chunker.js",
+                "semantic_search.js",
+                "content_processor.js",
+                "content.js"
+            ],
             "css": ["styles.css"],
             "run_at": "document_end"
         }
@@ -31,7 +37,16 @@
     },
     "web_accessible_resources": [
         {
-            "resources": ["sidebar.html", "sidebar.js", "sidebar.css"],
+            "resources": [
+                "sidebar.html",
+                "sidebar.js",
+                "sidebar.css",
+                "html_parser.js",
+                "content_chunker.js",
+                "semantic_search.js",
+                "content_processor.js",
+                "inject_processor.js"
+            ],
             "matches": ["<all_urls>"]
         }
     ]

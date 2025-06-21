@@ -160,22 +160,52 @@ class WebPilotController {
                 });
                 break;
             case "sendChatMessage":
-                const chatResponse = await this.sendMessageToBackground({
-                    action: "chatMessage",
-                    message: data.message,
-                    context: this.getPageContext(),
-                    currentText: this.activeElement ? this.getInputText() : "",
-                    additionalContext: this.additionalContext,
-                });
-                if (chatResponse.success) {
-                    this.postMessageToSidebar("addChatMessage", {
-                        sender: "assistant",
-                        message: chatResponse.reply,
+                try {
+                    // Always try to analyze the current page with the message as query
+                    // for the most relevant context to the current message
+                    try {
+                        // Analyze with the chat message as query
+                        this.additionalContext =
+                            await this.analyzeCurrentWebpage(data.message);
+
+                        // Add a system message to let the user know we're using embeddings
+                        this.addSystemMessage(
+                            "Using GPT embeddings to find relevant context for your question..."
+                        );
+                    } catch (error) {
+                        console.log(
+                            "Could not analyze page for chat, continuing with basic context",
+                            error
+                        );
+                    }
+
+                    const chatResponse = await this.sendMessageToBackground({
+                        action: "chatMessage",
+                        message: data.message,
+                        context: this.getPageContext(),
+                        currentText: this.activeElement
+                            ? this.getInputText()
+                            : "",
+                        additionalContext: this.additionalContext,
+                        useEmbeddings: true,
                     });
-                } else {
+
+                    if (chatResponse.success) {
+                        this.postMessageToSidebar("addChatMessage", {
+                            sender: "assistant",
+                            message: chatResponse.reply,
+                        });
+                    } else {
+                        this.postMessageToSidebar("addChatMessage", {
+                            sender: "assistant",
+                            message: `Error: ${chatResponse.error}`,
+                        });
+                    }
+                } catch (error) {
+                    console.error("Chat message failed:", error);
                     this.postMessageToSidebar("addChatMessage", {
                         sender: "assistant",
-                        message: `Error: ${chatResponse.error}`,
+                        message: `Error: ${error.message}`,
                     });
                 }
                 break;
@@ -209,6 +239,24 @@ class WebPilotController {
                     success: scrapeTestResult.success,
                     message: scrapeTestResult.message,
                 });
+                break;
+            case "analyzeCurrentPage":
+                try {
+                    // Analyze the current webpage with the given query
+                    const pageContext = await this.analyzeCurrentWebpage(
+                        data.query
+                    );
+
+                    // Update the sidebar with analysis results
+                    this.postMessageToSidebar("updateTabContext", {
+                        context: pageContext,
+                    });
+                } catch (error) {
+                    console.error("Failed to analyze current page:", error);
+                    this.postMessageToSidebar("showLoading", {
+                        message: `Analysis failed: ${error.message}`,
+                    });
+                }
                 break;
             // ... handle other actions like chat, settings, etc.
         }
@@ -330,19 +378,14 @@ class WebPilotController {
         }
 
         const originalText = this.getInputText();
+        this.postMessageToSidebar("showLoading", {
+            message: "Analyzing text with GPT embeddings context...",
+        });
 
-        // If we have enhanced context, try to refresh it with a query relevant to the action
-        if (
-            this.additionalContext &&
-            this.additionalContext.most_relevant_chunks
-        ) {
-            this.postMessageToSidebar("showLoading", {
-                message: "Refreshing context for better analysis...",
-            });
-
+        try {
+            // Generate context query based on action and current text
             let actionQuery = contextQuery;
             if (!actionQuery) {
-                // Generate context query based on action and current text
                 switch (action) {
                     case "improveText":
                         actionQuery = `Find information relevant to improving: "${originalText.substring(
@@ -370,35 +413,180 @@ class WebPilotController {
                 }
             }
 
-            // Try to refresh context with action-specific query
-            await this.refreshEnhancedContext(actionQuery);
-        }
+            // Analyze the current webpage directly with embeddings
+            const pageContext = await this.analyzeCurrentWebpage(actionQuery);
 
-        this.postMessageToSidebar("showLoading", {
-            message: "Analyzing text with enhanced context...",
-        });
+            // Add a system message indicating GPT embeddings are being used
+            this.addSystemMessage(
+                "Using GPT embeddings to find relevant page context for your text..."
+            );
 
-        const response = await this.sendMessageToBackground({
-            action: action,
-            text: originalText,
-            context: this.getPageContext(),
-            additionalContext: this.additionalContext,
-        });
-
-        if (response.success) {
-            const suggestedText =
-                response.improvedText ||
-                response.rewrittenText ||
-                response.elaboratedText;
-            this.postMessageToSidebar("showConfirmation", {
-                originalText,
-                suggestedText,
+            const response = await this.sendMessageToBackground({
+                action: action,
+                text: originalText,
+                context: this.getPageContext(),
+                additionalContext: pageContext,
+                useEmbeddings: true,
             });
-        } else {
+
+            if (response.success) {
+                const suggestedText =
+                    response.improvedText ||
+                    response.rewrittenText ||
+                    response.elaboratedText;
+                this.postMessageToSidebar("showConfirmation", {
+                    originalText,
+                    suggestedText,
+                });
+            } else {
+                this.postMessageToSidebar("showLoading", {
+                    message: `Error: ${response.error}`,
+                });
+            }
+        } catch (error) {
+            console.error("Enhanced text action failed:", error);
             this.postMessageToSidebar("showLoading", {
-                message: `Error: ${response.error}`,
+                message: `Error: ${error.message}`,
             });
+
+            // Fall back to regular text action
+            this.handleTextAction(action);
         }
+    }
+
+    /**
+     * Analyze the current webpage using GPT embeddings
+     * @param {string} query - The query to use for context retrieval
+     * @returns {Promise<Object>} - The context object with relevant sections
+     */
+    async analyzeCurrentWebpage(query) {
+        this.postMessageToSidebar("showLoading", {
+            message: "Analyzing current webpage with GPT embeddings...",
+        });
+
+        try {
+            // Get the current HTML content
+            const htmlContent = document.documentElement.outerHTML;
+
+            // Process the HTML with the content processor directly in this page
+            // First ensure the ContentProcessor is available
+            await this.ensureProcessorAvailable();
+
+            // Create a content processor
+            const processor = new ContentProcessor({
+                apiKey: await this.getApiKey(),
+                chunkSize: 750,
+            });
+
+            // Process the content
+            const result = await processor.getFullContextWithEmbeddings({
+                html: htmlContent,
+                query: query || "Extract most important information",
+                topK: 5,
+            });
+
+            if (result.success) {
+                // Store the context for use in other functions
+                this.additionalContext = result.context;
+
+                this.postMessageToSidebar("updateTabContext", {
+                    context: this.additionalContext,
+                });
+
+                return this.additionalContext;
+            } else {
+                throw new Error(result.error || "Analysis failed");
+            }
+        } catch (error) {
+            console.error("Webpage analysis failed:", error);
+            this.postMessageToSidebar("showLoading", {
+                message: `Analysis failed: ${error.message}`,
+            });
+            return null;
+        }
+    }
+
+    /**
+     * Ensure the content processor and related components are available
+     * @returns {Promise<void>}
+     */
+    async ensureProcessorAvailable() {
+        // Check if processor is already available
+        if (window.ContentProcessor) {
+            return;
+        }
+
+        // Inject the scripts
+        return new Promise((resolve, reject) => {
+            // Load each required script in sequence
+            const scripts = [
+                "html_parser.js",
+                "content_chunker.js",
+                "semantic_search.js",
+                "content_processor.js",
+            ];
+
+            let loaded = 0;
+
+            scripts.forEach((script) => {
+                const scriptEl = document.createElement("script");
+                scriptEl.src = chrome.runtime.getURL(script);
+                scriptEl.onload = () => {
+                    loaded++;
+                    if (loaded === scripts.length) {
+                        // Run the initializer script
+                        const initScript = document.createElement("script");
+                        initScript.src = chrome.runtime.getURL(
+                            "inject_processor.js"
+                        );
+                        initScript.onload = () => resolve();
+                        initScript.onerror = () =>
+                            reject(
+                                new Error(
+                                    "Failed to load processor initializer"
+                                )
+                            );
+                        document.head.appendChild(initScript);
+                    }
+                };
+                scriptEl.onerror = () =>
+                    reject(new Error(`Failed to load ${script}`));
+                document.head.appendChild(scriptEl);
+            });
+        });
+    }
+
+    /**
+     * Get OpenAI API key from storage
+     * @returns {Promise<string>} - The API key
+     */
+    async getApiKey() {
+        return new Promise((resolve, reject) => {
+            chrome.runtime.sendMessage(
+                { action: "getSettings" },
+                (response) => {
+                    if (chrome.runtime.lastError) {
+                        reject(chrome.runtime.lastError);
+                    } else if (response && response.openai_api_key) {
+                        resolve(response.openai_api_key);
+                    } else {
+                        reject(new Error("API key not found in settings"));
+                    }
+                }
+            );
+        });
+    }
+
+    /**
+     * Add a system message to the chat
+     * @param {string} message - The system message to display
+     * @param {string} type - The type of message (default, embeddings, etc.)
+     */
+    addSystemMessage(message, type = "embeddings") {
+        this.postMessageToSidebar("addSystemMessage", {
+            message: message,
+            type: type,
+        });
     }
 }
 
