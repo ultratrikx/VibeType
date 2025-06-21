@@ -1,6 +1,6 @@
 class WebPilotSidebar {
     constructor() {
-        this.activeView = 'assistant';
+        this.activeView = "assistant";
         this.additionalContext = null;
         this.init();
     }
@@ -11,123 +11,192 @@ class WebPilotSidebar {
     }
 
     addEventListeners() {
-        document.getElementById('webpilot-drag-handle').addEventListener('click', () => {
-            this.sendMessageToContentScript('toggleCollapse');
-        });
+        document
+            .getElementById("webpilot-drag-handle")
+            .addEventListener("click", () => {
+                this.sendMessageToContentScript("toggleCollapse");
+            });
 
         // Navigation
-        document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.addEventListener('click', (event) => {
+        document.querySelectorAll(".nav-btn").forEach((btn) => {
+            btn.addEventListener("click", (event) => {
                 event.stopPropagation();
-                this.switchView(btn.dataset.view)
+                this.switchView(btn.dataset.view);
             });
         });
 
         // Assistant View
-        document.getElementById('webpilot-improve').addEventListener('click', () => this.handleTextAction('improveText'));
-        document.getElementById('webpilot-rewrite').addEventListener('click', () => this.handleTextAction('rewriteText'));
-        document.getElementById('webpilot-elaborate').addEventListener('click', () => this.handleTextAction('elaborateText'));
+        document
+            .getElementById("webpilot-improve")
+            .addEventListener("click", () =>
+                this.handleTextAction("improveText")
+            );
+        document
+            .getElementById("webpilot-rewrite")
+            .addEventListener("click", () =>
+                this.handleTextAction("rewriteText")
+            );
+        document
+            .getElementById("webpilot-elaborate")
+            .addEventListener("click", () =>
+                this.handleTextAction("elaborateText")
+            );
 
         // Context Toggles
-        document.querySelectorAll('.context-header').forEach(header => {
-            header.addEventListener('click', () => {
+        document.querySelectorAll(".context-header").forEach((header) => {
+            header.addEventListener("click", () => {
                 const content = document.getElementById(header.dataset.toggle);
-                content.style.display = content.style.display === 'none' ? 'block' : 'none';
-                header.querySelector('.toggle-arrow').textContent = content.style.display === 'none' ? '▶' : '▼';
-                if (header.dataset.toggle === 'tab-context-content' && content.style.display !== 'none') {
+                content.style.display =
+                    content.style.display === "none" ? "block" : "none";
+                header.querySelector(".toggle-arrow").textContent =
+                    content.style.display === "none" ? "▶" : "▼";
+                if (
+                    header.dataset.toggle === "tab-context-content" &&
+                    content.style.display !== "none"
+                ) {
                     this.loadTabList();
                 }
             });
-        });
-
-        // Tab Context
-        document.getElementById('webpilot-load-tab-context').addEventListener('click', () => this.loadTabContext());
-        document.getElementById('webpilot-clear-tab-context').addEventListener('click', () => this.clearTabContext());
+        }); // Tab Context
+        document
+            .getElementById("webpilot-load-tab-context")
+            .addEventListener("click", () => this.loadTabContext());
+        document
+            .getElementById("webpilot-enhanced-load")
+            .addEventListener("click", () => this.loadEnhancedTabContext());
+        document
+            .getElementById("webpilot-search-content")
+            .addEventListener("click", () => this.searchWebContent());
+        document
+            .getElementById("webpilot-clear-tab-context")
+            .addEventListener("click", () => this.clearTabContext());
 
         // Chat View
-        document.getElementById('webpilot-chat-send').addEventListener('click', () => this.sendChatMessage());
-        document.getElementById('webpilot-chat-input').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                this.sendChatMessage();
-            }
-        });
-
-        // Settings View
-        document.getElementById('saveApiKey').addEventListener('click', () => this.saveApiKey());
-        document.getElementById('testApiKey').addEventListener('click', () => this.testApiKey());
+        document
+            .getElementById("webpilot-chat-send")
+            .addEventListener("click", () => this.sendChatMessage());
+        document
+            .getElementById("webpilot-chat-input")
+            .addEventListener("keydown", (e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    this.sendChatMessage();
+                }
+            }); // Settings View
+        document
+            .getElementById("saveApiKey")
+            .addEventListener("click", () => this.saveApiKey());
+        document
+            .getElementById("saveScrapeApi")
+            .addEventListener("click", () => this.saveScrapeApi());
+        document
+            .getElementById("testApiKey")
+            .addEventListener("click", () => this.testApiKey());
+        document
+            .getElementById("testScrapeApi")
+            .addEventListener("click", () => this.testScrapeApi());
 
         // Listen for messages from the content script
-        window.addEventListener('message', (event) => {
+        window.addEventListener("message", (event) => {
             if (!event.data || !event.data.action) return;
 
             const { action, data } = event.data;
 
-            if (action === 'updateCollapseState') {
+            if (action === "updateCollapseState") {
                 this.handleCollapseState(data.isCollapsed);
-            } else if (action === 'showConfirmation') {
+            } else if (action === "showConfirmation") {
                 this.showConfirmation(data.originalText, data.suggestedText);
-            } else if (action === 'showSuggestions') {
+            } else if (action === "showSuggestions") {
                 this.updateSuggestions(data.suggestions);
-            } else if (action === 'showLoading') {
-                 this.showLoadingInSuggestions(data.message);
-            } else if (action === 'updateTabContext') {
+            } else if (action === "showLoading") {
+                this.showLoadingInSuggestions(data.message);
+            } else if (action === "updateTabContext") {
                 this.displayTabContext(data.context);
-            } else if (action === 'addChatMessage') {
+            } else if (action === "addChatMessage") {
                 this.addChatMessage(data.sender, data.message);
-            } else if (action === 'settingsLoaded') {
+            } else if (action === "settingsLoaded") {
                 if (data.settings.openai_api_key) {
-                    document.getElementById('apiKey').value = data.settings.openai_api_key;
+                    document.getElementById("apiKey").value =
+                        data.settings.openai_api_key;
                 }
-            } else if (action === 'apiKeyStatus') {
-                this.showStatus(data.message, data.success ? 'success' : 'error');
+                if (data.settings.scrape_api_url) {
+                    document.getElementById("scrapeApiUrl").value =
+                        data.settings.scrape_api_url;
+                }
+            } else if (action === "apiKeyStatus") {
+                this.showStatus(
+                    data.message,
+                    data.success ? "success" : "error"
+                );
+            } else if (action === "scrapeApiStatus") {
+                this.showStatus(
+                    data.message,
+                    data.success ? "success" : "error"
+                );
             }
         });
     }
 
     // --- Communication with Content Script ---
     sendMessageToContentScript(action, data) {
-        window.parent.postMessage({ type: 'FROM_WEBPILOT_SIDEBAR', action, data }, '*');
+        window.parent.postMessage(
+            { type: "FROM_WEBPILOT_SIDEBAR", action, data },
+            "*"
+        );
     }
 
     // --- View Switching ---
     switchView(viewName) {
         // Update nav buttons
-        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelector(`.nav-btn[data-view="${viewName}"]`).classList.add('active');
+        document
+            .querySelectorAll(".nav-btn")
+            .forEach((btn) => btn.classList.remove("active"));
+        document
+            .querySelector(`.nav-btn[data-view="${viewName}"]`)
+            .classList.add("active");
 
         // Show the correct view
-        document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
-        document.getElementById(`${viewName}-view`).classList.add('active');
+        document
+            .querySelectorAll(".view")
+            .forEach((view) => view.classList.remove("active"));
+        document.getElementById(`${viewName}-view`).classList.add("active");
 
         this.activeView = viewName;
     }
-    
+
     // --- Assistant Logic ---
     handleTextAction(action) {
         this.sendMessageToContentScript(action);
     }
 
-    showLoadingInSuggestions(message = 'Loading...') {
-        document.getElementById('webpilot-suggestions').style.display = 'block';
-        document.getElementById('webpilot-confirmation-container').style.display = 'none';
-        document.getElementById('webpilot-suggestions').innerHTML = `<div class="loading">${message}</div>`;
+    showLoadingInSuggestions(message = "Loading...") {
+        document.getElementById("webpilot-suggestions").style.display = "block";
+        document.getElementById(
+            "webpilot-confirmation-container"
+        ).style.display = "none";
+        document.getElementById(
+            "webpilot-suggestions"
+        ).innerHTML = `<div class="loading">${message}</div>`;
     }
 
     updateSuggestions(suggestions) {
-        const container = document.getElementById('webpilot-suggestions');
-        if (typeof suggestions === 'string') {
+        const container = document.getElementById("webpilot-suggestions");
+        if (typeof suggestions === "string") {
             container.innerHTML = `<div class="suggestion-item">${suggestions}</div>`;
         } else {
-            container.innerHTML = suggestions.map(s => `<div class="suggestion-item">${s}</div>`).join('');
+            container.innerHTML = suggestions
+                .map((s) => `<div class="suggestion-item">${s}</div>`)
+                .join("");
         }
     }
 
     showConfirmation(originalText, suggestedText) {
-        document.getElementById('webpilot-suggestions').style.display = 'none';
-        const container = document.getElementById('webpilot-confirmation-container');
-        container.style.display = 'block';
-        
+        document.getElementById("webpilot-suggestions").style.display = "none";
+        const container = document.getElementById(
+            "webpilot-confirmation-container"
+        );
+        container.style.display = "block";
+
         container.innerHTML = `
           <div class="webpilot-diff-view">
               <div class="diff-header">Suggested Change</div>
@@ -142,17 +211,25 @@ class WebPilotSidebar {
           </div>
         `;
 
-        document.getElementById('accept-change').addEventListener('click', () => {
-            this.sendMessageToContentScript('acceptChange', { newText: suggestedText });
-            this.hideConfirmation();
-        });
-        document.getElementById('reject-change').addEventListener('click', () => this.hideConfirmation());
+        document
+            .getElementById("accept-change")
+            .addEventListener("click", () => {
+                this.sendMessageToContentScript("acceptChange", {
+                    newText: suggestedText,
+                });
+                this.hideConfirmation();
+            });
+        document
+            .getElementById("reject-change")
+            .addEventListener("click", () => this.hideConfirmation());
     }
-    
+
     hideConfirmation() {
-        document.getElementById('webpilot-confirmation-container').style.display = 'none';
-        document.getElementById('webpilot-suggestions').style.display = 'block';
-        this.sendMessageToContentScript('getSuggestions');
+        document.getElementById(
+            "webpilot-confirmation-container"
+        ).style.display = "none";
+        document.getElementById("webpilot-suggestions").style.display = "block";
+        this.sendMessageToContentScript("getSuggestions");
     }
 
     // --- Context Logic ---
@@ -160,60 +237,147 @@ class WebPilotSidebar {
         // This needs to message the content script, which messages the background script.
         // For simplicity, we'll assume the content script will push the tab list to us.
         // Let's create a placeholder listener for now.
-        window.addEventListener('message', (event) => {
+        window.addEventListener("message", (event) => {
             const { action, data } = event.data;
-            if (action === 'updateTabList') {
-                const selector = document.getElementById('webpilot-tab-selector');
-                selector.innerHTML = '<option value="">Select a tab...</option>';
-                data.tabs.forEach(tab => {
-                    const option = document.createElement('option');
+            if (action === "updateTabList") {
+                const selector = document.getElementById(
+                    "webpilot-tab-selector"
+                );
+                selector.innerHTML =
+                    '<option value="">Select a tab...</option>';
+                data.tabs.forEach((tab) => {
+                    const option = document.createElement("option");
                     option.value = tab.id;
-                    option.textContent = tab.title.substring(0, 40) + '...';
+                    option.textContent = tab.title.substring(0, 40) + "...";
                     selector.appendChild(option);
                 });
             }
         });
-        this.sendMessageToContentScript('getTabList');
+        this.sendMessageToContentScript("getTabList");
+    }
+    loadTabContext() {
+        const tabId = document.getElementById("webpilot-tab-selector").value;
+        if (tabId) {
+            this.sendMessageToContentScript("loadTabContext", { tabId });
+        }
     }
 
-    loadTabContext() {
-        const tabId = document.getElementById('webpilot-tab-selector').value;
+    loadEnhancedTabContext() {
+        const tabId = document.getElementById("webpilot-tab-selector").value;
+        const query =
+            document.getElementById("content-search-query").value ||
+            "Extract main content and key information";
+
         if (tabId) {
-            this.sendMessageToContentScript('loadTabContext', { tabId });
+            this.showLoadingInSuggestions(
+                "Processing content with enhanced extraction..."
+            );
+            this.sendMessageToContentScript("loadEnhancedTabContext", {
+                tabId,
+                query,
+            });
+        }
+    }
+
+    searchWebContent() {
+        const tabId = document.getElementById("webpilot-tab-selector").value;
+        const query = document.getElementById("content-search-query").value;
+
+        if (!query.trim()) {
+            this.showStatus("Please enter a search query", "error");
+            return;
+        }
+
+        if (tabId) {
+            this.showLoadingInSuggestions("Searching web content...");
+            this.sendMessageToContentScript("searchWebContent", {
+                tabId,
+                query,
+            });
+        } else {
+            this.showStatus("Please select a tab first", "error");
         }
     }
 
     clearTabContext() {
-        this.sendMessageToContentScript('clearTabContext');
-        document.getElementById('webpilot-tab-context-display').style.display = 'none';
+        this.sendMessageToContentScript("clearTabContext");
+        document.getElementById("webpilot-tab-context-display").style.display =
+            "none";
         this.additionalContext = null;
     }
-
     displayTabContext(context) {
         if (!context) {
-            document.getElementById('webpilot-tab-context-display').style.display = 'none';
+            document.getElementById(
+                "webpilot-tab-context-display"
+            ).style.display = "none";
             return;
         }
-        const display = document.getElementById('webpilot-tab-context-display');
-        document.getElementById('tab-context-title').textContent = context.title;
-        document.getElementById('tab-context-snippet').textContent = context.content.substring(0, 100) + '...';
-        display.style.display = 'block';
+
+        const display = document.getElementById("webpilot-tab-context-display");
+        document.getElementById("tab-context-title").textContent =
+            context.title;
+
+        // Handle enhanced content with chunks
+        if (
+            context.most_relevant_chunks &&
+            context.most_relevant_chunks.length > 0
+        ) {
+            document.getElementById(
+                "tab-context-snippet"
+            ).textContent = `Enhanced content processed (${
+                context.chunks?.length || 0
+            } chunks analyzed)`;
+
+            const chunksDisplay = document.getElementById("chunks-display");
+            const relevantChunks = document.getElementById("relevant-chunks");
+
+            chunksDisplay.innerHTML = context.most_relevant_chunks
+                .map(
+                    (chunk, index) => `
+                <div class="chunk-item" style="margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                    <div class="chunk-header" style="font-weight: bold; color: #333;">
+                        Section ${index + 1}: ${chunk.title || "Untitled"} 
+                        <span style="font-size: 0.8em; color: #666;">(Score: ${(
+                            chunk.similarity_score * 100
+                        ).toFixed(1)}%)</span>
+                    </div>
+                    <div class="chunk-content" style="margin-top: 5px; font-size: 0.9em;">
+                        ${chunk.content.substring(0, 200)}${
+                        chunk.content.length > 200 ? "..." : ""
+                    }
+                    </div>
+                </div>
+            `
+                )
+                .join("");
+
+            relevantChunks.style.display = "block";
+        } else {
+            // Basic content display
+            document.getElementById("tab-context-snippet").textContent =
+                context.content
+                    ? context.content.substring(0, 100) + "..."
+                    : "No content extracted";
+            document.getElementById("relevant-chunks").style.display = "none";
+        }
+
+        display.style.display = "block";
     }
 
     // --- Chat Logic ---
     sendChatMessage() {
-        const input = document.getElementById('webpilot-chat-input');
+        const input = document.getElementById("webpilot-chat-input");
         const message = input.value.trim();
         if (!message) return;
-        
-        this.addChatMessage('user', message);
-        this.sendMessageToContentScript('sendChatMessage', { message });
-        input.value = '';
+
+        this.addChatMessage("user", message);
+        this.sendMessageToContentScript("sendChatMessage", { message });
+        input.value = "";
     }
 
     addChatMessage(sender, message) {
-        const container = document.getElementById('webpilot-chat-messages');
-        const messageEl = document.createElement('div');
+        const container = document.getElementById("webpilot-chat-messages");
+        const messageEl = document.createElement("div");
         messageEl.className = `message ${sender}`;
         messageEl.textContent = message;
         container.appendChild(messageEl);
@@ -223,39 +387,55 @@ class WebPilotSidebar {
     // --- Settings Logic ---
     async loadSettings() {
         // Request settings from content script (which gets from storage)
-        this.sendMessageToContentScript('loadSettings');
+        this.sendMessageToContentScript("loadSettings");
+    }
+    saveApiKey() {
+        const apiKey = document.getElementById("apiKey").value;
+        this.sendMessageToContentScript("saveSetting", {
+            key: "openai_api_key",
+            value: apiKey,
+        });
+        this.showStatus("API Key saved!", "success");
     }
 
-    saveApiKey() {
-        const apiKey = document.getElementById('apiKey').value;
-        this.sendMessageToContentScript('saveSetting', { key: 'openai_api_key', value: apiKey });
-        this.showStatus('API Key saved!', 'success');
+    saveScrapeApi() {
+        const apiUrl = document.getElementById("scrapeApiUrl").value;
+        this.sendMessageToContentScript("saveSetting", {
+            key: "scrape_api_url",
+            value: apiUrl,
+        });
+        this.showStatus("Scrape API URL saved!", "success");
+    }
+
+    testScrapeApi() {
+        this.showStatus("Testing scrape API connection...", "info");
+        this.sendMessageToContentScript("testScrapeApi");
     }
 
     testApiKey() {
-        this.showStatus('Testing connection...', 'info');
-        this.sendMessageToContentScript('testApiKey');
+        this.showStatus("Testing connection...", "info");
+        this.sendMessageToContentScript("testApiKey");
     }
-    
+
     showStatus(message, type) {
-        const statusEl = document.getElementById('status');
+        const statusEl = document.getElementById("status");
         statusEl.textContent = message;
         statusEl.className = `status ${type}`;
-        statusEl.style.display = 'block';
-        setTimeout(() => statusEl.style.display = 'none', 3000);
+        statusEl.style.display = "block";
+        setTimeout(() => (statusEl.style.display = "none"), 3000);
     }
 
     handleCollapseState(isCollapsed) {
-        const container = document.querySelector('.webpilot-sidebar-container');
-        const icon = document.getElementById('webpilot-icon');
+        const container = document.querySelector(".webpilot-sidebar-container");
+        const icon = document.getElementById("webpilot-icon");
         if (isCollapsed) {
-            container.classList.add('is-collapsed');
-            icon.textContent = '📖'; // Change icon to show it can be opened
+            container.classList.add("is-collapsed");
+            icon.textContent = "📖"; // Change icon to show it can be opened
         } else {
-            container.classList.remove('is-collapsed');
-            icon.textContent = '✍️'; // Restore original icon
+            container.classList.remove("is-collapsed");
+            icon.textContent = "✍️"; // Restore original icon
         }
     }
 }
 
-new WebPilotSidebar(); 
+new WebPilotSidebar();
