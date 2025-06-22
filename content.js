@@ -104,33 +104,32 @@
                 position: absolute;
                 z-index: 2147483647;
                 background-color: #1a1a1a;
-                border-radius: 8px;
-                padding: 8px;
+                border-radius: 6px;
+                padding: 4px;
                 display: flex;
                 flex-direction: column;
-                gap: 4px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                gap: 2px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.2);
                 opacity: 0;
                 transition: opacity 0.2s;
             }
             #vibetype-confirmation-dialog button {
                 display: flex;
                 align-items: center;
-                gap: 10px;
+                gap: 8px;
                 background: none;
                 border: none;
                 color: #e0e0e0;
-                padding: 8px 12px;
-                border-radius: 6px;
+                padding: 6px 10px;
+                border-radius: 4px;
                 cursor: pointer;
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                font-size: 14px;
+                font-size: 13px;
                 text-align: left;
-                transition: background-color 0.2s;
+                transition: color 0.2s;
                 width: 100%;
             }
             #vibetype-confirmation-dialog button:hover {
-                background-color: #333;
                 color: white;
             }
             #vibetype-confirmation-dialog button svg {
@@ -337,6 +336,7 @@
         if (highlight) {
             const text = document.createTextNode(highlight.textContent);
             highlight.parentNode.replaceChild(text, highlight);
+            lastRange = null; // The range is now invalid
         }
         hideConfirmationDialog();
     }
@@ -346,6 +346,7 @@
         if (highlight) {
             const text = document.createTextNode(originalText);
             highlight.parentNode.replaceChild(text, highlight);
+            lastRange = null; // The range is now invalid
         }
         hideConfirmationDialog();
     }
@@ -354,18 +355,20 @@
         const highlight = document.querySelector(".vibetype-highlight");
         if (highlight) {
             const currentText = highlight.textContent;
-            // Re-select the range for replacement
+            // Re-select the range for replacement so the next suggestion replaces this one
             const range = document.createRange();
             range.selectNodeContents(highlight);
             lastRange = range;
-            originalText = currentText; // The new original is the current suggestion
+
+            hideConfirmationDialog();
+            chrome.runtime.sendMessage({
+                action: "processText",
+                text: currentText, // Send the current suggestion's text to be rewritten
+                editType: "Rewrite",
+            });
+        } else {
+            hideConfirmationDialog();
         }
-        hideConfirmationDialog();
-        chrome.runtime.sendMessage({
-            action: "processText",
-            text: originalText, // Send original text again
-            editType: "Rewrite", // Default to rewrite for trying again
-        });
     }
 
     // --- Event Listeners ---

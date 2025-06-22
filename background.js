@@ -588,10 +588,7 @@ Return only the suggestions, one per line, without numbering or additional forma
     }
 
     buildImprovePrompt(text, context, additionalContext = null) {
-        let contextInfo = `Context:
-- Page title: ${context.title}
-- Website: ${context.domain}
-- URL: ${context.url}`;
+        let contextInfo = `Context:\n- Page title: ${context.title}\n- Website: ${context.domain}\n- URL: ${context.url}`;
 
         if (additionalContext) {
             contextInfo += this.buildEnhancedContextInfo(
@@ -600,27 +597,18 @@ Return only the suggestions, one per line, without numbering or additional forma
             );
         }
 
-        return `You are WebPilot, an AI writing assistant. Improve the following text for clarity, grammar, and style while maintaining the original meaning and tone.
+        return `You are an AI writing assistant. Your task is to improve the following text for clarity, grammar, and style, while preserving the original meaning.
 
 ${contextInfo}
 
-Original text: "${text}"
+Original text:
+"${text}"
 
-Please improve this text by:
-1. Fixing grammar and punctuation errors
-2. Improving clarity and readability
-3. Enhancing style and flow
-4. Maintaining the original intent and tone
-5. Considering any additional context provided for better relevance
-
-Return only the improved text without any explanations or additional formatting.`;
+IMPORTANT: Respond with ONLY the improved text. Do not add any introductory phrases, explanations, or markdown formatting. Do not wrap the output in quotes.`;
     }
 
     buildRewritePrompt(text, context, additionalContext = null) {
-        let contextInfo = `Context:
-- Page title: ${context.title}
-- Website: ${context.domain}
-- URL: ${context.url}`;
+        let contextInfo = `Context:\n- Page title: ${context.title}\n- Website: ${context.domain}\n- URL: ${context.url}`;
 
         if (additionalContext) {
             contextInfo += this.buildEnhancedContextInfo(
@@ -629,27 +617,18 @@ Return only the improved text without any explanations or additional formatting.
             );
         }
 
-        return `You are WebPilot, an AI writing assistant. Rewrite the following text in a different way while keeping the same meaning.
+        return `You are an AI writing assistant. Your task is to rewrite the following text, using different words and sentence structures while keeping the exact same meaning.
 
 ${contextInfo}
 
-Original text: "${text}"
+Original text:
+"${text}"
 
-Please rewrite this text by:
-1. Using different words and sentence structures
-2. Maintaining the same meaning and intent
-3. Keeping the same tone and style
-4. Making it more engaging if possible
-5. Considering any additional context for better relevance
-
-Return only the rewritten text without any explanations or additional formatting.`;
+IMPORTANT: Your response MUST be different from the original text. Respond with ONLY the rewritten text. Do not add any introductory phrases, explanations, or markdown formatting. Do not wrap the output in quotes.`;
     }
 
     buildElaboratePrompt(text, context, additionalContext = null) {
-        let contextInfo = `Context:
-- Page title: ${context.title}
-- Website: ${context.domain}
-- URL: ${context.url}`;
+        let contextInfo = `Context:\n- Page title: ${context.title}\n- Website: ${context.domain}\n- URL: ${context.url}`;
 
         if (additionalContext) {
             contextInfo += this.buildEnhancedContextInfo(
@@ -658,28 +637,22 @@ Return only the rewritten text without any explanations or additional formatting
             );
         }
 
-        return `You are WebPilot, an AI writing assistant. Elaborate on the following text by adding more detail, examples, or explanations.
+        return `You are an AI writing assistant. Your task is to elaborate on the following text by adding more detail, examples, or explanations.
 
 ${contextInfo}
 
-Original text: "${text}"
+Original text:
+"${text}"
 
-Please elaborate on this text by:
-1. Adding relevant details and context
-2. Providing examples or explanations where appropriate
-3. Expanding on key points
-4. Maintaining the original tone and style
-5. Using any additional context provided for better elaboration
-
-Return only the elaborated text without any explanations or additional formatting.`;
+IMPORTANT: Respond with ONLY the elaborated text. Do not add any introductory phrases, explanations, or markdown formatting. Do not wrap the output in quotes.`;
     }
 
     buildChatPrompt(message, context, currentText, additionalContext = null) {
-        let contextInfo = `Context:
-- Page title: ${context.title}
-- Website: ${context.domain}
-- URL: ${context.url}
-- Current text in the input field: "${currentText || "Empty"}"`;
+        let contextInfo = `Context:\n- Page title: ${
+            context.title
+        }\n- Website: ${context.domain}\n- URL: ${
+            context.url
+        }\n- Current text in the input field: "${currentText || "Empty"}"`;
 
         if (additionalContext) {
             contextInfo += this.buildEnhancedContextInfo(
@@ -688,17 +661,19 @@ Return only the elaborated text without any explanations or additional formattin
             );
         }
 
-        return `You are WebPilot, an AI writing assistant helping a user write better content on a webpage.
+        return `You are WebPilot, a direct and efficient AI writing assistant. A user is asking for help with their writing on a webpage.
 
 ${contextInfo}
 
-User's question/request: "${message}"
+User's request: "${message}"
 
-Please provide a helpful, concise response that assists the user with their writing. Be friendly, professional, and specific to their request. If they're asking about the current text, provide suggestions for improvement. If they're asking general writing questions, provide clear, actionable advice.
+Provide a direct, helpful response.
+- If the user asks for a change to their text, provide only the changed text without quotes.
+- If the user asks a question, provide a concise answer.
+- Do not use conversational fluff or introductory phrases like "Certainly," or "Here is...".
+- Get straight to the point.
 
-Consider both the current page context and any additional context provided to give more relevant and comprehensive assistance.
-
-Keep your response under 200 words unless the user specifically asks for more detail.`;
+Your response should be immediately usable for the user.`;
     }
 
     buildEnhancedContextInfo(additionalContext, taskType) {
@@ -833,7 +808,7 @@ Note: Consider the context from these sections to provide more informed and rele
     }
 
     async handleGetSettings(sendResponse) {
-        const settings = await chrome.storage.local.get([
+        const settings = await chrome.storage.sync.get([
             "openai_api_key",
             "scrape_api_url",
         ]);
@@ -841,7 +816,7 @@ Note: Consider the context from these sections to provide more informed and rele
     }
     async handleSaveSetting(request, sendResponse) {
         try {
-            await chrome.storage.local.set({ [request.key]: request.value });
+            await chrome.storage.sync.set({ [request.key]: request.value });
             // Re-load settings after saving
             await this.loadSettings();
             sendResponse({ success: true });
