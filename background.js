@@ -141,7 +141,13 @@ class WebPilotBackground {
                 activeTabs.length > 0 ? activeTabs[0].id : sender.tab?.id;
 
             const tabList = allTabs
-                .filter((tab) => tab.id !== currentTabId)
+                .filter((tab) => {
+                    const isHttp =
+                        tab.url &&
+                        (tab.url.startsWith("http://") ||
+                            tab.url.startsWith("https://"));
+                    return tab.id !== currentTabId && isHttp;
+                })
                 .map((tab) => ({
                     id: tab.id,
                     title: tab.title,

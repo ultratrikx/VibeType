@@ -369,6 +369,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 (response) => {
                     if (response && response.success) {
                         additionalContext = { ...response, fetched: true };
+                        console.log(
+                            "Context from other tab:",
+                            additionalContext
+                        );
                         addMessage(
                             "assistant",
                             `Context from "${
