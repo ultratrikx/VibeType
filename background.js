@@ -9,9 +9,22 @@ class WebPilotBackground {
     async init() {
         await this.loadSettings();
         this.setupMessageListeners();
+        this.setupStorageListener();
     }
+
+    setupStorageListener() {
+        chrome.storage.onChanged.addListener((changes, namespace) => {
+            if (namespace === "sync") {
+                this.loadSettings();
+                console.log(
+                    "WebPilot: Settings reloaded due to storage change."
+                );
+            }
+        });
+    }
+
     async loadSettings() {
-        const result = await chrome.storage.local.get([
+        const result = await chrome.storage.sync.get([
             "openai_api_key",
             "scrape_api_url",
         ]);
@@ -26,6 +39,23 @@ class WebPilotBackground {
                 return true; // Keep message channel open for async response
             }
         );
+
+        chrome.action.onClicked.addListener((tab) => {
+            this.toggleSidebar(tab);
+        });
+    }
+
+    async toggleSidebar(tab) {
+        try {
+            await chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                func: () => {
+                    window.postMessage({ action: "toggleSidebar" }, "*");
+                },
+            });
+        } catch (error) {
+            console.error("Error toggling sidebar:", error);
+        }
     }
 
     async handleMessage(request, sender, sendResponse) {
@@ -469,7 +499,42 @@ class WebPilotBackground {
             return;
         }
 
-        const { message, context, currentText, additionalContext } = request;
+        const { message, currentText, additionalContext } = request;
+
+        // Get context from the currently active tab
+        const tabs = await chrome.tabs.query({
+            active: true,
+            currentWindow: true,
+        });
+        let context = {
+            title: "No active tab",
+            url: "",
+            domain: "",
+            selection: "",
+        };
+
+        if (tabs[0]) {
+            const activeTab = tabs[0];
+            let domain = "";
+            try {
+                if (activeTab.url && activeTab.url.startsWith("http")) {
+                    domain = new URL(activeTab.url).hostname;
+                }
+            } catch (e) {
+                console.error(
+                    "Error parsing URL for domain:",
+                    activeTab.url,
+                    e
+                );
+            }
+            context = {
+                title: activeTab.title,
+                url: activeTab.url,
+                domain: domain,
+                selection: "", // Not available in chat context
+            };
+        }
+
         const prompt = this.buildChatPrompt(
             message,
             context,
@@ -725,7 +790,7 @@ Note: Consider the context from these sections to provide more informed and rele
                         Authorization: `Bearer ${this.apiKey}`,
                     },
                     body: JSON.stringify({
-                        model: "gpt-4o-mini",
+                        model: "gpt-4o",
                         messages: [
                             {
                                 role: "system",
@@ -874,66 +939,6 @@ Note: Consider the context from these sections to provide more informed and rele
         });
     }
 }
-
-// listen for clicks on the extension icon
-chrome.action.onClicked.addListener(async (tab) => {
-    console.log("WebPilot: Extension icon clicked for tab:", tab.id);
-    if (tab.id) {
-        try {
-            // First, try to check if the tab is accessible
-            await chrome.scripting.executeScript({
-                target: { tabId: tab.id },
-                func: () => {
-                    console.log("WebPilot: Content script check successful");
-                    return true;
-                },
-            });
-
-            // Then send the message to toggle the sidebar
-            chrome.tabs.sendMessage(
-                tab.id,
-                { action: "toggleSidebar" },
-                (response) => {
-                    if (chrome.runtime.lastError) {
-                        console.error(
-                            "WebPilot: Error sending message:",
-                            chrome.runtime.lastError
-                        );
-                        // Try to inject the content script if it's not already there
-                        chrome.scripting
-                            .executeScript({
-                                target: { tabId: tab.id },
-                                files: ["content.js"],
-                            })
-                            .then(() => {
-                                console.log(
-                                    "WebPilot: Content script injected, retrying..."
-                                );
-                                setTimeout(() => {
-                                    chrome.tabs.sendMessage(tab.id, {
-                                        action: "toggleSidebar",
-                                    });
-                                }, 500);
-                            })
-                            .catch((err) => {
-                                console.error(
-                                    "WebPilot: Failed to inject content script:",
-                                    err
-                                );
-                            });
-                    } else {
-                        console.log(
-                            "WebPilot: Sidebar toggle message sent successfully",
-                            response
-                        );
-                    }
-                }
-            );
-        } catch (err) {
-            console.error("WebPilot: Cannot access tab:", err);
-        }
-    }
-});
 
 // Initialize the background script
 new WebPilotBackground();

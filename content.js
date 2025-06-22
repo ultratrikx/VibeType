@@ -6,8 +6,9 @@
 
     console.log("VibeType: Content script loaded.");
 
-    let toolbar, confirmationDialog;
+    let toolbar, confirmationDialog, sidebar;
     let lastRange, originalText;
+    let isSidebarOpen = false;
 
     function createUI() {
         toolbar = document.createElement("div");
@@ -57,6 +58,28 @@
         }, 200);
     }
 
+    function createSidebar() {
+        if (sidebar) return;
+        sidebar = document.createElement("iframe");
+        sidebar.id = "vibetype-sidebar-iframe";
+        sidebar.src = chrome.runtime.getURL("sidebar.html");
+        document.body.appendChild(sidebar);
+
+        sidebar.onload = () => {
+            console.log("VibeType: Sidebar loaded.");
+        };
+    }
+
+    function toggleSidebar() {
+        if (!sidebar) {
+            createSidebar();
+        }
+        isSidebarOpen = !isSidebarOpen;
+        if (sidebar) {
+            sidebar.style.width = isSidebarOpen ? "350px" : "0px";
+        }
+    }
+
     function showConfirmationDialog(targetRect) {
         confirmationDialog.style.display = "flex";
         const dialogWidth = confirmationDialog.offsetWidth;
@@ -75,7 +98,7 @@
     function hideConfirmationDialog() {
         confirmationDialog.style.opacity = "0";
         setTimeout(() => {
-            confirmationDialog.style.display = "none";
+            confirmationDialog.style.display = "none";  
         }, 200);
     }
 
@@ -158,6 +181,15 @@
                 selection.toString().trim().length > 5
             ) {
                 showToolbar();
+                if (isSidebarOpen && sidebar && sidebar.contentWindow) {
+                    sidebar.contentWindow.postMessage(
+                        {
+                            action: "updateSelectedText",
+                            text: selection.toString(),
+                        },
+                        "*"
+                    );
+                }
             } else {
                 hideToolbar();
             }
@@ -211,6 +243,15 @@
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (message.action === "showSuggestion") {
             replaceAndHighlight(message.suggestion);
+        }
+    });
+
+    window.addEventListener("message", (event) => {
+        if (event.source !== window || !event.data.action) return;
+
+        if (event.data.action === "toggleSidebar") {
+            console.log("VibeType: Toggle sidebar message received.");
+            toggleSidebar();
         }
     });
 

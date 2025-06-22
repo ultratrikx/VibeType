@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>VibeType Sidebar</title>
+        <link rel="stylesheet" href="sidebar.css" />
+    </head>
+    <body>
+        <div class="sidebar-container">
+            <div class="tabs">
+                <button class="tab-link active" data-tab="chat">Chat</button>
+                <button class="tab-link" data-tab="settings">Settings</button>
+            </div>
+
+            <div id="chat" class="tab-content active">
+                <div id="chat-messages" class="chat-messages">
+                    <!-- Messages will be appended here -->
+                </div>
+                <div class="chat-input-area">
+                    <div id="original-text-context" class="context-pill">
+                        <p id="original-text"></p>
+                        <button id="clear-context-btn">&times;</button>
+                    </div>
+                    <div class="input-wrapper">
+                        <textarea
+                            id="custom-prompt"
+                            placeholder="Ask how to improve your text..."
+                            rows="1"
+                        ></textarea>
+                        <button id="generate-btn" title="Generate Response">
+                            &#x27A4;
+                        </button>
+                    </div>
+                    <button id="add-context-btn">
+                        + Add Context from Another Tab
+                    </button>
+                </div>
+            </div>
+
+            <div id="settings" class="tab-content">
+                <div class="settings-container">
+                    <h3>Settings</h3>
+                    <div class="setting">
+                        <label for="api-key">OpenAI API Key</label>
+                        <div class="input-group">
+                            <input
+                                type="password"
+                                id="api-key"
+                                placeholder="Enter your API key"
+                            />
+                            <button id="test-api-key-btn" class="test-btn">
+                                Test
+                            </button>
+                        </div>
+                    </div>
+                    <div class="setting">
+                        <label for="api-url">Local Parsing API</label>
+                        <div class="input-group">
+                            <input
+                                type="text"
+                                id="api-url"
+                                placeholder="http://127.0.0.1:8000"
+                            />
+                            <button id="test-api-url-btn" class="test-btn">
+                                Test
+                            </button>
+                        </div>
+                    </div>
+                    <button id="save-settings-btn">Save Settings</button>
+                    <p id="settings-status"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Selection Modal -->
+        <div id="tab-selection-modal" class="modal">
+            <div class="modal-content">
+                <h3>Select a Tab for Context</h3>
+                <div id="tab-list" class="tab-list"></div>
+                <div class="modal-actions">
+                    <button id="cancel-tab-selection">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <script src="sidebar.js"></script>
+    </body>
+</html>

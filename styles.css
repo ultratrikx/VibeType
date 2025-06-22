@@ -789,3 +789,20 @@
   background-color: #ccc;
   border-radius: 2px;
 }
+
+/* Sidebar Iframe Styles */
+#vibetype-sidebar-iframe {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 100%;
+  border: none;
+  z-index: 2147483647;
+  /* Max z-index */
+  background-color: #1a1a1a;
+  /* Dark background */
+  box-shadow: -5px 0 15px rgba(0, 0, 0, 0.5);
+  transition: width 0.3s ease-in-out;
+  overflow: hidden;
+}

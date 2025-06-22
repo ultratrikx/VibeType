@@ -1,479 +1,366 @@
-/*-======- General Styles -======-*/
+/* VibeType Sidebar Styles */
+
+:root {
+    --background-color: #1a1d21;
+    --text-color: #e0e0e0;
+    --primary-accent: #9e8cfc;
+    --secondary-accent: #6a4fc1;
+    --input-background: #2c2f33;
+    --border-color: #40444b;
+    --hover-background: #35393f;
+    --font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
 body,
 html {
     margin: 0;
     padding: 0;
     height: 100%;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    color: #333;
-    background-color: #f8f9fa;
+    font-family: var(--font-family);
+    background-color: var(--background-color);
+    color: var(--text-color);
     font-size: 14px;
     overflow: hidden;
 }
 
-.webpilot-sidebar-container {
+.sidebar-container {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    height: 100vh;
 }
 
-/*-======- Header & Navigation -======-*/
-.webpilot-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 8px 12px;
+/* --- Tabs --- */
+.tabs {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    cursor: pointer;
-    user-select: none;
-    transition: background-color 0.3s;
+    background-color: var(--background-color);
+    border-bottom: 1px solid var(--border-color);
 }
 
-.webpilot-title {
-    font-weight: 600;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.webpilot-title #webpilot-icon {
-    display: inline-block;
-    transition: font-size 0.3s;
-}
-
-.webpilot-nav {
-    display: flex;
-    gap: 4px;
-}
-
-.nav-btn {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 4px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-    transition: background-color 0.2s;
-}
-
-.nav-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-}
-
-.nav-btn.active {
-    background: white;
-    color: #667eea;
-    font-weight: 600;
-}
-
-/*-======- Main Content & Views -======-*/
-.webpilot-content {
+.tab-link {
     flex: 1;
-    overflow-y: auto;
-    background: white;
-}
-
-.view {
-    display: none;
-    height: 100%;
-    flex-direction: column;
-}
-
-.view.active {
-    display: flex;
-}
-
-/*-======- Assistant View Styles -======-*/
-.context-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 12px;
-    font-weight: 600;
-    cursor: pointer;
-    background: #f8f9fa;
-    border-bottom: 1px solid #e9ecef;
-}
-
-.toggle-content {
     padding: 12px;
-    border-bottom: 1px solid #e9ecef;
-}
-
-.tab-selector {
-    display: flex;
-    gap: 8px;
-}
-
-#webpilot-tab-selector {
-    flex-grow: 1;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-    padding: 4px;
-}
-
-.webpilot-suggestions,
-#webpilot-confirmation-container {
-    padding: 12px;
-}
-
-.webpilot-actions {
-    padding: 12px;
-    display: flex;
-    gap: 8px;
-    border-top: 1px solid #e9ecef;
-}
-
-.action-btn {
-    flex: 1;
-}
-
-/*-======- Chat View Styles -======-*/
-#chat-view {
-    justify-content: space-between;
-}
-
-.webpilot-chat-messages {
-    flex-grow: 1;
-    padding: 12px;
-    overflow-y: auto;
-}
-
-.webpilot-chat-input-container {
-    display: flex;
-    padding: 12px;
-    border-top: 1px solid #e9ecef;
-    gap: 8px;
-}
-
-#webpilot-chat-input {
-    flex-grow: 1;
-    resize: none;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-    padding: 8px;
-}
-
-/*-======- Settings View Styles -======-*/
-.settings-content {
-    padding: 16px;
-}
-
-.form-group {
-    margin-bottom: 16px;
-}
-
-label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 500;
-}
-
-input[type="password"] {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box;
-}
-
-.help-text {
-    font-size: 12px;
-    color: #666;
-    margin-top: 4px;
-}
-
-.settings-btn {
-    width: 100%;
-    padding: 10px;
-    border-radius: 4px;
+    background: none;
     border: none;
-    background-color: #667eea;
-    color: white;
-    font-weight: 600;
+    color: var(--text-color);
     cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease-in-out;
 }
 
-.settings-btn.secondary {
-    background-color: #6c757d;
-    margin-top: 8px;
+.tab-link:hover {
+    background-color: var(--hover-background);
 }
 
-.status {
-    padding: 10px;
-    margin-bottom: 12px;
-    border-radius: 4px;
+.tab-link.active {
+    color: var(--primary-accent);
+    border-bottom: 2px solid var(--primary-accent);
+}
+
+.tab-content {
     display: none;
-}
-
-.status.success {
-    background-color: #d4edda;
-    color: #155724;
-}
-
-.status.error {
-    background-color: #f8d7da;
-    color: #721c24;
-}
-
-/*-======- Shared Component Styles (from old styles.css) -======-*/
-button {
-    cursor: pointer;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-    padding: 6px 12px;
-    background-color: #f8f9fa;
-    transition: background-color 0.2s;
-}
-
-button:hover {
-    background-color: #e9ecef;
-}
-
-.webpilot-accept-btn {
-    background-color: #28a745;
-    color: white;
-}
-
-.webpilot-accept-btn:hover {
-    background-color: #218838;
-}
-
-.webpilot-reject-btn {
-    background-color: #dc3545;
-    color: white;
-}
-
-.webpilot-reject-btn:hover {
-    background-color: #c82333;
-}
-
-#webpilot-clear-tab-context {
-    background-color: #dc3545;
-    color: white;
-}
-
-#webpilot-confirmation-container {
-    padding: 16px;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.webpilot-diff-view {
-    border: 1px solid #e9ecef;
-    border-radius: 6px;
+    flex-grow: 1;
+    flex-direction: column;
     overflow: hidden;
 }
 
-.diff-header {
-    padding: 10px 16px;
-    background: #f8f9fa;
-    font-weight: 600;
-    font-size: 13px;
-    color: #495057;
-    border-bottom: 1px solid #e9ecef;
-}
-
-.diff-content {
+.tab-content.active {
     display: flex;
 }
 
-.diff-pane {
-    width: 50%;
-    padding: 12px;
-}
-
-.diff-pane.original {
-    border-right: 1px solid #e9ecef;
-    background: #fff8f8;
-}
-
-.diff-pane.suggested {
-    background: #f8fff8;
-}
-
-.pane-title {
-    font-weight: 600;
-    font-size: 12px;
-    margin-bottom: 8px;
-    color: #6c757d;
-}
-
-.diff-pane.original .pane-title {
-    color: #dc3545;
-}
-
-.diff-pane.suggested .pane-title {
-    color: #28a745;
-}
-
-.diff-pane pre {
-    margin: 0;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    font-family: inherit;
-    font-size: 13px;
-    color: #333;
-}
-
-.webpilot-confirmation-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 16px;
-}
-
-.webpilot-suggestion {
-    padding: 12px;
-    margin-bottom: 8px;
-    background: #f8f9fa;
-    border: 1px solid #e9ecef;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 13px;
-    line-height: 1.4;
-    color: #495057;
-}
-
-.webpilot-suggestion:hover {
-    background: #e9ecef;
-}
-
-/*-======- Enhanced Web Scraping Features -======-*/
-.enhanced-btn {
-    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
-    color: white !important;
-    border: none !important;
-    font-weight: 600;
-}
-
-.enhanced-btn:hover {
-    background: linear-gradient(135deg, #0f8a7e 0%, #32d96b 100%) !important;
-}
-
-.context-buttons {
-    display: flex;
-    gap: 5px;
-    margin-top: 5px;
-}
-
-.context-buttons button {
-    flex: 1;
-}
-
-.search-section {
-    border-top: 1px solid #e0e0e0;
-    padding-top: 10px;
-}
-
-.search-section input {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    margin-bottom: 8px;
-    font-size: 13px;
-}
-
-.search-section button {
-    width: 100%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    padding: 8px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 500;
-}
-
-.search-section button:hover {
-    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
-}
-
-.chunk-item {
-    background: #f8f9fa;
-    border-left: 4px solid #667eea;
-    margin: 8px 0;
-    transition: background-color 0.2s;
-}
-
-.chunk-item:hover {
-    background: #f0f1f5;
-}
-
-.chunk-header {
-    font-weight: 600;
-    color: #333;
-    font-size: 13px;
-    display: flex;
-    align-items: center;
+/* --- Chat View --- */
+#chat {
     justify-content: space-between;
 }
 
-.chunk-content {
-    color: #666;
+.chat-messages {
+    flex-grow: 1;
+    padding: 15px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.chat-message {
+    padding: 10px 14px;
+    border-radius: 12px;
+    max-width: 85%;
+    line-height: 1.5;
+}
+
+.user-message {
+    background-color: var(--primary-accent);
+    color: #ffffff;
+    align-self: flex-end;
+    border-bottom-right-radius: 2px;
+}
+
+.assistant-message {
+    background-color: var(--input-background);
+    color: var(--text-color);
+    align-self: flex-start;
+    border-bottom-left-radius: 2px;
+}
+
+.assistant-message code {
+    font-family: 'Courier New', Courier, monospace;
+    background-color: #1e1e1e;
+    padding: 1px 4px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.chat-input-area {
+    padding: 15px;
+    border-top: 1px solid var(--border-color);
+    background-color: var(--background-color);
+}
+
+.context-pill {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--input-background);
+    border-radius: 15px;
+    padding: 5px 5px 5px 12px;
+    margin-bottom: 10px;
     font-size: 12px;
-    line-height: 1.4;
 }
 
-#relevant-chunks {
-    margin-top: 15px;
-    padding-top: 10px;
-    border-top: 1px solid #e0e0e0;
+.context-pill p {
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-#chunks-display {
-    max-height: 300px;
+#clear-context-btn {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    font-size: 18px;
+    padding: 0 8px;
+}
+
+.input-wrapper {
+    display: flex;
+    align-items: center;
+    background-color: var(--input-background);
+    border-radius: 20px;
+    padding: 5px;
+}
+
+#custom-prompt {
+    flex-grow: 1;
+    background: none;
+    border: none;
+    color: var(--text-color);
+    resize: none;
+    padding: 8px;
+    font-size: 14px;
+    outline: none;
+}
+
+#generate-btn {
+    background-color: var(--primary-accent);
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+#generate-btn:hover {
+    background-color: var(--secondary-accent);
+}
+
+#add-context-btn {
+    width: 100%;
+    margin-top: 10px;
+    background: none;
+    border: 1px dashed var(--border-color);
+    color: var(--text-color);
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#add-context-btn:hover {
+    background-color: var(--hover-background);
+    border-color: var(--primary-accent);
+}
+
+/* --- Settings View --- */
+.settings-container {
+    padding: 20px;
     overflow-y: auto;
 }
 
-.form-group {
-    margin-bottom: 15px;
+.settings-container h3 {
+    margin-top: 0;
+    color: var(--primary-accent);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
 }
 
-.form-group label {
+.setting {
+    margin-bottom: 20px;
+}
+
+.setting label {
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
     font-weight: 500;
-    color: #333;
 }
 
-.help-text {
-    font-size: 12px;
-    color: #666;
-    margin-top: 4px;
+.setting input {
+    width: 100%;
+    padding: 10px;
+    background-color: var(--input-background);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-color);
+    font-size: 14px;
+    box-sizing: border-box;
 }
 
-.settings-btn.secondary {
-    background: #6c757d;
+#save-settings-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--primary-accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s;
 }
 
-.settings-btn.secondary:hover {
-    background: #5a6268;
+#save-settings-btn:hover {
+    background-color: var(--secondary-accent);
 }
 
-/*-======- Collapsed State -======-*/
-.webpilot-sidebar-container.is-collapsed .webpilot-header {
+#settings-status {
+    margin-top: 15px;
+    text-align: center;
+    font-weight: 500;
+    min-height: 20px;
+}
+
+.input-group {
+    display: flex;
+    gap: 10px;
+}
+
+.input-group input {
+    flex-grow: 1;
+}
+
+.test-btn {
+    padding: 0 20px;
+    background-color: var(--input-background);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.test-btn:hover {
+    background-color: var(--hover-background);
+    border-color: var(--primary-accent);
+}
+
+/* --- Modal Styles --- */
+.modal {
+    display: none;
+    /* Hidden by default */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
     justify-content: center;
+    align-items: center;
 }
 
-.webpilot-sidebar-container.is-collapsed .webpilot-title {
-    color: transparent;
-    font-size: 0;
+.modal-content {
+    background-color: var(--background-color);
+    padding: 20px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
 }
 
-.webpilot-sidebar-container.is-collapsed #webpilot-icon {
-    font-size: 24px;
-    margin: 0;
+.modal-content h3 {
+    margin-top: 0;
+    color: var(--primary-accent);
 }
 
-.webpilot-sidebar-container.is-collapsed .webpilot-nav {
-    display: none;
+.tab-list {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-top: 15px;
 }
 
-.webpilot-sidebar-container.is-collapsed .webpilot-content {
-    display: none;
+.tab-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    gap: 10px;
+}
+
+.tab-item:hover {
+    background-color: var(--hover-background);
+}
+
+.tab-item img {
+    width: 16px;
+    height: 16px;
+}
+
+.tab-item span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.modal-actions {
+    margin-top: 20px;
+    text-align: right;
+}
+
+#cancel-tab-selection {
+    background-color: var(--input-background);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+#cancel-tab-selection:hover {
+    background-color: var(--hover-background);
+}
+
+/* Context Pill for added tab */
+.context-pill.has-context {
+    display: flex;
 }
