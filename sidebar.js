@@ -335,7 +335,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 },
                 (response) => {
                     if (response && response.success) {
-                        addMessage("assistant", response.reply);
+                        addMessage("assistant", response.reply, {
+                            isFinal: true,
+                        });
                     } else {
                         addMessage(
                             "assistant",
@@ -397,10 +399,32 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    function addMessage(sender, text) {
+    function addMessage(sender, text, options = {}) {
         const messageEl = document.createElement("div");
         messageEl.classList.add("chat-message", `${sender}-message`);
-        messageEl.innerHTML = text; // Use innerHTML to render potential HTML in messages
+
+        const textNode = document.createElement("div");
+        textNode.innerHTML = text; // Using innerHTML to render potential markdown later
+        messageEl.appendChild(textNode);
+
+        // Only add the insert button for final assistant responses that are successful
+        if (sender === "assistant" && options.isFinal) {
+            const insertBtn = document.createElement("button");
+            insertBtn.textContent = "Insert";
+            insertBtn.className = "insert-btn";
+            insertBtn.title = "Insert this text into the active page element";
+            insertBtn.addEventListener("click", () => {
+                window.parent.postMessage(
+                    {
+                        action: "insertText",
+                        text: text, // Send the raw text
+                    },
+                    "*"
+                );
+            });
+            messageEl.appendChild(insertBtn);
+        }
+
         chatMessagesEl.appendChild(messageEl);
         chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
     }

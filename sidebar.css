@@ -16,7 +16,8 @@
     box-sizing: border-box;
 }
 
-body, html {
+body,
+html {
     margin: 0;
     padding: 0;
     height: 100%;
@@ -144,6 +145,35 @@ body, html {
     align-self: flex-start;
     border-bottom-left-radius: 4px;
     border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    /* Space between text and button */
+}
+
+/* Insert Button */
+.insert-btn {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    align-self: flex-start;
+    /* Align button to the left */
+    transition: all 0.2s;
+}
+
+.insert-btn:hover {
+    background-color: var(--accent-color);
+    color: var(--text-primary);
+    border-color: var(--accent-color);
+}
+
+.insert-btn:active {
+    transform: scale(0.96);
 }
 
 /* Context Pill */

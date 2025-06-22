@@ -9,25 +9,39 @@
     let toolbar, confirmationDialog, sidebar;
     let lastRange, originalText;
     let isSidebarOpen = false;
+    let lastActiveElement; // To store the last focused editable element
+
+    // Add a listener to track the last focused editable element
+    document.addEventListener("focusin", (e) => {
+        const el = e.target;
+        if (
+            el &&
+            (el.isContentEditable ||
+                el.tagName === "TEXTAREA" ||
+                el.tagName === "INPUT")
+        ) {
+            lastActiveElement = el;
+        }
+    });
 
     // Create a shadow DOM container for our sidebar
     function createShadowContainer() {
-        const container = document.createElement('div');
-        container.id = 'vibetype-container';
+        const container = document.createElement("div");
+        container.id = "vibetype-container";
         // Position the container
-        container.style.position = 'fixed';
-        container.style.top = '0';
-        container.style.right = '0';
-        container.style.height = '100vh';
-        container.style.zIndex = '2147483647';
-        container.style.transition = 'width 0.3s ease';
-        container.style.width = '0';
-        
+        container.style.position = "fixed";
+        container.style.top = "0";
+        container.style.right = "0";
+        container.style.height = "100vh";
+        container.style.zIndex = "2147483647";
+        container.style.transition = "width 0.3s ease";
+        container.style.width = "0";
+
         // Create shadow DOM
-        const shadow = container.attachShadow({ mode: 'closed' });
-        
+        const shadow = container.attachShadow({ mode: "closed" });
+
         // Add styles to shadow DOM
-        const style = document.createElement('style');
+        const style = document.createElement("style");
         style.textContent = `
             :host {
                 all: initial;
@@ -46,16 +60,93 @@
             }
         `;
         shadow.appendChild(style);
-        
+
         return { container, shadow };
     }
 
     function initializeConnection() {
         // Simple connection initialization - can be expanded later
-        console.log('VibeType: Connection initialized for sidebar');
+        console.log("VibeType: Connection initialized for sidebar");
     }
 
     function createUI() {
+        // Inject styles for the toolbar and confirmation dialog
+        const injectedStyles = `
+            #web-pilot-toolbar {
+                position: absolute;
+                z-index: 2147483646;
+                background-color: #1a1a1a;
+                border-radius: 8px;
+                padding: 4px;
+                display: flex;
+                gap: 4px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                opacity: 0;
+                transition: opacity 0.2s;
+            }
+            #web-pilot-toolbar button {
+                background: none;
+                border: none;
+                color: #e0e0e0;
+                padding: 8px 12px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                font-size: 14px;
+                transition: background-color 0.2s;
+            }
+            #web-pilot-toolbar button:hover {
+                background-color: #333;
+                color: white;
+            }
+
+            #vibetype-confirmation-dialog {
+                position: absolute;
+                z-index: 2147483647;
+                background-color: #1a1a1a;
+                border-radius: 8px;
+                padding: 8px;
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                opacity: 0;
+                transition: opacity 0.2s;
+            }
+            #vibetype-confirmation-dialog button {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                background: none;
+                border: none;
+                color: #e0e0e0;
+                padding: 8px 12px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                font-size: 14px;
+                text-align: left;
+                transition: background-color 0.2s;
+                width: 100%;
+            }
+            #vibetype-confirmation-dialog button:hover {
+                background-color: #333;
+                color: white;
+            }
+            #vibetype-confirmation-dialog button svg {
+                flex-shrink: 0;
+            }
+            .vibetype-highlight {
+                background-color: rgba(100, 180, 255, 0.25);
+                border-radius: 3px;
+                padding: 2px 0;
+            }
+        `;
+        const styleSheet = document.createElement("style");
+        styleSheet.type = "text/css";
+        styleSheet.innerText = injectedStyles;
+        document.head.appendChild(styleSheet);
+
         toolbar = document.createElement("div");
         toolbar.id = "web-pilot-toolbar";
         toolbar.innerHTML = `
@@ -70,9 +161,18 @@
         confirmationDialog = document.createElement("div");
         confirmationDialog.id = "vibetype-confirmation-dialog";
         confirmationDialog.innerHTML = `
-            <button class="accept-btn" title="Accept">✔️</button>
-            <button class="discard-btn" title="Discard">❌</button>
-            <button class="try-again-btn" title="Try Again">🔄</button>
+            <button class="accept-btn" title="Accept">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>Accept</span>
+            </button>
+            <button class="discard-btn" title="Discard">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 6L6 18" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 6L18 18" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>Discard</span>
+            </button>
+            <button class="try-again-btn" title="Try Again">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C15.18 3 17.94 4.58 19.42 7M19.42 7H14V2" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>Rewrite</span>
+            </button>
         `;
         document.body.appendChild(confirmationDialog);
     }
@@ -111,34 +211,40 @@
         // Create shadow DOM container
         const { container, shadow } = createShadowContainer();
         document.body.appendChild(container);
-        
+
         // Create wrapper inside shadow DOM
-        const wrapper = document.createElement('div');
-        wrapper.id = 'sidebar-wrapper';
-        
+        const wrapper = document.createElement("div");
+        wrapper.id = "sidebar-wrapper";
+
         // Create the iframe
         sidebar = document.createElement("iframe");
         sidebar.id = "vibetype-sidebar-iframe";
-        
+
         const sidebarUrl = chrome.runtime.getURL("sidebar.html");
         sidebar.src = sidebarUrl;
-        
+
         // Set security attributes
-        sidebar.setAttribute('allow', 'clipboard-write');
-        sidebar.setAttribute('sandbox', 'allow-scripts allow-forms allow-same-origin allow-popups allow-modals');
-        
+        sidebar.setAttribute("allow", "clipboard-write");
+        sidebar.setAttribute(
+            "sandbox",
+            "allow-scripts allow-forms allow-same-origin allow-popups allow-modals"
+        );
+
         wrapper.appendChild(sidebar);
         shadow.appendChild(wrapper);
 
         sidebar.onload = () => {
             console.log("VibeType: Sidebar loaded.");
             initializeConnection();
-            
+
             if (sidebar.contentWindow) {
-                sidebar.contentWindow.postMessage({ 
-                    action: 'sidebarReady',
-                    extensionId: chrome.runtime.id
-                }, '*');
+                sidebar.contentWindow.postMessage(
+                    {
+                        action: "sidebarReady",
+                        extensionId: chrome.runtime.id,
+                    },
+                    "*"
+                );
             }
         };
     }
@@ -148,8 +254,8 @@
             createSidebar();
         }
         isSidebarOpen = !isSidebarOpen;
-        
-        const container = document.getElementById('vibetype-container');
+
+        const container = document.getElementById("vibetype-container");
         if (container) {
             container.style.width = isSidebarOpen ? "350px" : "0";
         }
@@ -173,17 +279,17 @@
     function hideConfirmationDialog() {
         confirmationDialog.style.opacity = "0";
         setTimeout(() => {
-            confirmationDialog.style.display = "none";  
+            confirmationDialog.style.display = "none";
         }, 200);
     }
 
     function handleToolbarAction(action) {
         hideToolbar();
-        
+
         if (action === "Chat") {
             // Toggle the sidebar for chat
             toggleSidebar();
-            
+
             // If text is selected and sidebar is opening, send the selected text to sidebar
             if (originalText && !isSidebarOpen) {
                 setTimeout(() => {
@@ -343,12 +449,73 @@
         }
     });
 
+    const extensionOrigin = new URL(chrome.runtime.getURL("any.html")).origin;
+
     window.addEventListener("message", (event) => {
-        if (event.source !== window || !event.data.action) return;
+        // Only accept messages from our own extension's iframe
+        if (
+            event.origin !== extensionOrigin ||
+            !event.data ||
+            !event.data.action
+        ) {
+            return;
+        }
 
         if (event.data.action === "toggleSidebar") {
             console.log("VibeType: Toggle sidebar message received.");
             toggleSidebar();
+        } else if (event.data.action === "insertText") {
+            const textToInsert = event.data.text;
+            console.log("VibeType: Insert text message received", textToInsert);
+
+            // Prioritize the last actively focused element, as the selection is lost when using the sidebar.
+            const target = lastActiveElement;
+
+            if (
+                target &&
+                (target.isContentEditable ||
+                    target.tagName === "TEXTAREA" ||
+                    target.tagName === "INPUT")
+            ) {
+                target.focus(); // Bring focus back to the element to ensure commands work
+
+                if (
+                    target.tagName === "TEXTAREA" ||
+                    target.tagName === "INPUT"
+                ) {
+                    const start = target.selectionStart;
+                    const end = target.selectionEnd;
+                    const value = target.value || "";
+                    // Replace selection or insert at cursor
+                    target.value =
+                        value.substring(0, start) +
+                        textToInsert +
+                        value.substring(end);
+                    // Move cursor to the end of the inserted text
+                    const newCursorPos = start + textToInsert.length;
+                    target.selectionStart = newCursorPos;
+                    target.selectionEnd = newCursorPos;
+                } else if (target.isContentEditable) {
+                    // For contenteditable, execCommand is a reliable way to handle various rich text editors.
+                    document.execCommand("insertText", false, textToInsert);
+                }
+            } else if (lastRange) {
+                // Fallback to the original selection range if no active element was tracked.
+                // This is less reliable as the range can become invalid.
+                try {
+                    lastRange.deleteContents();
+                    lastRange.insertNode(document.createTextNode(textToInsert));
+                } catch (e) {
+                    console.error(
+                        "VibeType: Failed to insert text using lastRange.",
+                        e
+                    );
+                }
+            } else {
+                console.error(
+                    "VibeType: No target element found to insert text."
+                );
+            }
         }
     });
 
