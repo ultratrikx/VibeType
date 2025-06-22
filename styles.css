@@ -1,3 +1,114 @@
+/* VibeType Modern UI - styles.css */
+
+/* --- Base & Reset --- */
+:root {
+  --brand-primary: #6a2ff1;
+  --brand-secondary: #f8d147;
+  --dark-bg: #1a1a1a;
+  --light-text: #f0f0f0;
+  --border-color: rgba(255, 255, 255, 0.15);
+  --shadow-color: rgba(0, 0, 0, 0.5);
+  --success-color: #28a745;
+  --danger-color: #dc3545;
+  --font-main: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+/* --- Floating Toolbar --- */
+#web-pilot-toolbar {
+  position: absolute;
+  z-index: 2147483647;
+  background: var(--dark-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 9999px;
+  /* Pill shape */
+  box-shadow: 0 8px 30px var(--shadow-color);
+  display: none;
+  padding: 5px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+#web-pilot-toolbar button {
+  background: transparent;
+  color: var(--light-text);
+  border: none;
+  padding: 8px 16px;
+  margin: 0 2px;
+  border-radius: 9999px;
+  /* Pill shape */
+  cursor: pointer;
+  font-family: var(--font-main);
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+#web-pilot-toolbar button:hover {
+  background: var(--brand-primary);
+  color: white;
+}
+
+#web-pilot-toolbar button:active {
+  transform: scale(0.95);
+}
+
+/* --- In-page Suggestion & Confirmation --- */
+.vibetype-highlight {
+  background-color: var(--brand-secondary);
+  color: black;
+  transition: all 0.3s ease;
+}
+
+#vibetype-confirmation-dialog {
+  position: absolute;
+  z-index: 2147483647;
+  background: var(--dark-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 8px 30px var(--shadow-color);
+  display: none;
+  padding: 6px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+#vibetype-confirmation-dialog button {
+  background: transparent;
+  color: var(--light-text);
+  border: none;
+  padding: 8px 12px;
+  margin: 0 2px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: var(--font-main);
+  font-size: 13px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+#vibetype-confirmation-dialog button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+#vibetype-confirmation-dialog .accept-btn:hover {
+  background: var(--success-color);
+  color: white;
+}
+
+#vibetype-confirmation-dialog .discard-btn:hover {
+  background: var(--danger-color);
+  color: white;
+}
+
+#vibetype-confirmation-dialog .try-again-btn:hover {
+  background: var(--brand-primary);
+  color: white;
+}
+
+/* --- WebPilot Sidebar --- */
 #webpilot-sidebar {
   position: fixed;
   top: 0;
@@ -9,7 +120,7 @@
   border-radius: 8px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   z-index: 10000;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-family: var(--font-main);
   display: none;
   overflow: hidden;
   animation: webpilot-slide-in 0.3s ease-out;
@@ -677,202 +788,4 @@
   height: 3px;
   background-color: #ccc;
   border-radius: 2px;
-}
-
-/* Floating Toolbar Styles */
-#webpilot-floating-toolbar {
-  position: absolute;
-  z-index: 2147483646;
-  /* Just below sidebar */
-  background: white;
-  border: 1px solid #e1e5e9;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  display: none;
-  opacity: 0;
-  transform: translateY(-10px);
-  transition: opacity 0.2s ease, transform 0.2s ease;
-  min-width: 280px;
-  max-width: 400px;
-}
-
-#webpilot-floating-toolbar.webpilot-toolbar-visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-#webpilot-floating-toolbar.webpilot-toolbar-loading {
-  pointer-events: none;
-}
-
-.webpilot-toolbar-content {
-  display: flex;
-  align-items: center;
-  padding: 8px 12px;
-  gap: 8px;
-  position: relative;
-}
-
-.webpilot-toolbar-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-
-.webpilot-toolbar-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-
-.webpilot-toolbar-btn:active {
-  transform: translateY(0);
-}
-
-.webpilot-toolbar-loading .webpilot-toolbar-btn {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.webpilot-btn-icon {
-  font-size: 14px;
-}
-
-.webpilot-btn-text {
-  font-size: 11px;
-}
-
-.webpilot-toolbar-close {
-  background: #f8f9fa;
-  color: #6c757d;
-  border: 1px solid #e9ecef;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 14px;
-  line-height: 1;
-  transition: all 0.2s ease;
-  margin-left: auto;
-}
-
-.webpilot-toolbar-close:hover {
-  background: #e9ecef;
-  color: #495057;
-}
-
-.webpilot-suggestion-panel {
-  border-top: 1px solid #e9ecef;
-  padding: 12px;
-  background: #f8f9fa;
-}
-
-.webpilot-suggestion-content {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.webpilot-suggestion-text {
-  background: white;
-  border: 1px solid #e9ecef;
-  border-radius: 6px;
-  padding: 10px;
-  font-size: 13px;
-  line-height: 1.4;
-  color: #495057;
-  max-height: 120px;
-  overflow-y: auto;
-  word-wrap: break-word;
-}
-
-.webpilot-suggestion-actions {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-}
-
-.webpilot-suggestion-accept,
-.webpilot-suggestion-decline {
-  padding: 6px 16px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: 1px solid;
-}
-
-.webpilot-suggestion-accept {
-  background: #28a745;
-  color: white;
-  border-color: #28a745;
-}
-
-.webpilot-suggestion-accept:hover {
-  background: #218838;
-  border-color: #1e7e34;
-}
-
-.webpilot-suggestion-decline {
-  background: white;
-  color: #6c757d;
-  border-color: #ced4da;
-}
-
-.webpilot-suggestion-decline:hover {
-  background: #f8f9fa;
-  color: #495057;
-}
-
-/* Loading animation for toolbar */
-.webpilot-toolbar-loading .webpilot-toolbar-content::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, #667eea, transparent);
-  animation: webpilot-loading-bar 1.5s infinite;
-}
-
-@keyframes webpilot-loading-bar {
-  0% {
-    transform: translateX(-100%);
-  }
-
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-/* Responsive adjustments */
-@media (max-width: 480px) {
-  #webpilot-floating-toolbar {
-    min-width: 260px;
-    max-width: calc(100vw - 40px);
-  }
-
-  .webpilot-toolbar-btn {
-    padding: 6px 10px;
-    font-size: 11px;
-  }
-
-  .webpilot-btn-text {
-    display: none;
-  }
 }
