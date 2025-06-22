@@ -10,6 +10,51 @@
     let lastRange, originalText;
     let isSidebarOpen = false;
 
+    // Create a shadow DOM container for our sidebar
+    function createShadowContainer() {
+        const container = document.createElement('div');
+        container.id = 'vibetype-container';
+        // Position the container
+        container.style.position = 'fixed';
+        container.style.top = '0';
+        container.style.right = '0';
+        container.style.height = '100vh';
+        container.style.zIndex = '2147483647';
+        container.style.transition = 'width 0.3s ease';
+        container.style.width = '0';
+        
+        // Create shadow DOM
+        const shadow = container.attachShadow({ mode: 'closed' });
+        
+        // Add styles to shadow DOM
+        const style = document.createElement('style');
+        style.textContent = `
+            :host {
+                all: initial;
+            }
+            #sidebar-wrapper {
+                height: 100%;
+                width: 100%;
+                background: white;
+                box-shadow: -2px 0 5px rgba(0,0,0,0.2);
+            }
+            iframe {
+                border: none;
+                width: 100%;
+                height: 100%;
+                background: white;
+            }
+        `;
+        shadow.appendChild(style);
+        
+        return { container, shadow };
+    }
+
+    function initializeConnection() {
+        // Simple connection initialization - can be expanded later
+        console.log('VibeType: Connection initialized for sidebar');
+    }
+
     function createUI() {
         toolbar = document.createElement("div");
         toolbar.id = "web-pilot-toolbar";
@@ -17,7 +62,9 @@
             <button data-action="Improve">Improve</button>
             <button data-action="Rewrite">Rewrite</button>
             <button data-action="Elaborate">Elaborate</button>
+            <button data-action="Chat">Chat</button>
         `;
+        toolbar.style.display = "none"; // Initially hidden
         document.body.appendChild(toolbar);
 
         confirmationDialog = document.createElement("div");
@@ -60,13 +107,39 @@
 
     function createSidebar() {
         if (sidebar) return;
+
+        // Create shadow DOM container
+        const { container, shadow } = createShadowContainer();
+        document.body.appendChild(container);
+        
+        // Create wrapper inside shadow DOM
+        const wrapper = document.createElement('div');
+        wrapper.id = 'sidebar-wrapper';
+        
+        // Create the iframe
         sidebar = document.createElement("iframe");
         sidebar.id = "vibetype-sidebar-iframe";
-        sidebar.src = chrome.runtime.getURL("sidebar.html");
-        document.body.appendChild(sidebar);
+        
+        const sidebarUrl = chrome.runtime.getURL("sidebar.html");
+        sidebar.src = sidebarUrl;
+        
+        // Set security attributes
+        sidebar.setAttribute('allow', 'clipboard-write');
+        sidebar.setAttribute('sandbox', 'allow-scripts allow-forms allow-same-origin allow-popups allow-modals');
+        
+        wrapper.appendChild(sidebar);
+        shadow.appendChild(wrapper);
 
         sidebar.onload = () => {
             console.log("VibeType: Sidebar loaded.");
+            initializeConnection();
+            
+            if (sidebar.contentWindow) {
+                sidebar.contentWindow.postMessage({ 
+                    action: 'sidebarReady',
+                    extensionId: chrome.runtime.id
+                }, '*');
+            }
         };
     }
 
@@ -75,8 +148,10 @@
             createSidebar();
         }
         isSidebarOpen = !isSidebarOpen;
-        if (sidebar) {
-            sidebar.style.width = isSidebarOpen ? "350px" : "0px";
+        
+        const container = document.getElementById('vibetype-container');
+        if (container) {
+            container.style.width = isSidebarOpen ? "350px" : "0";
         }
     }
 
@@ -104,11 +179,33 @@
 
     function handleToolbarAction(action) {
         hideToolbar();
-        chrome.runtime.sendMessage({
-            action: "processText",
-            text: originalText,
-            editType: action,
-        });
+        
+        if (action === "Chat") {
+            // Toggle the sidebar for chat
+            toggleSidebar();
+            
+            // If text is selected and sidebar is opening, send the selected text to sidebar
+            if (originalText && !isSidebarOpen) {
+                setTimeout(() => {
+                    if (sidebar && sidebar.contentWindow) {
+                        sidebar.contentWindow.postMessage(
+                            {
+                                action: "updateSelectedText",
+                                text: originalText,
+                            },
+                            "*"
+                        );
+                    }
+                }, 500); // Small delay to ensure sidebar is loaded
+            }
+        } else {
+            // Handle text processing actions (Improve, Rewrite, Elaborate)
+            chrome.runtime.sendMessage({
+                action: "processText",
+                text: originalText,
+                editType: action,
+            });
+        }
     }
 
     function replaceAndHighlight(suggestion) {

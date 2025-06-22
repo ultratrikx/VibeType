@@ -1,6 +1,20 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const tabs = document.querySelectorAll(".tab-link");
-    const contents = document.querySelectorAll(".tab-content");
+    // Send ready message to parent window
+    try {
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ action: 'ready' }, '*');
+        }
+    } catch (error) {
+        console.error('VibeType Sidebar: Error sending ready message:', error);
+    }
+
+    // Get DOM elements
+    const backBtn = document.getElementById("back-btn");
+    const settingsBtn = document.getElementById("settings-btn");
+    const chatView = document.getElementById("chat-view");
+    const settingsView = document.getElementById("settings-view");
+    const sidebarTitle = document.querySelector(".sidebar-title");
+    
     const originalTextEl = document.getElementById("original-text");
     const customPromptEl = document.getElementById("custom-prompt");
     const addContextBtn = document.getElementById("add-context-btn");
@@ -14,30 +28,113 @@ document.addEventListener("DOMContentLoaded", function () {
     const testApiUrlBtn = document.getElementById("test-api-url-btn");
     const tabSelectionModal = document.getElementById("tab-selection-modal");
     const tabListEl = document.getElementById("tab-list");
-    const cancelTabSelectionBtn = document.getElementById(
-        "cancel-tab-selection"
-    );
-    const originalTextContext = document.getElementById(
-        "original-text-context"
-    );
+    const cancelTabSelectionBtn = document.getElementById("cancel-tab-selection");
+    const originalTextContext = document.getElementById("original-text-context");
     const clearContextBtn = document.getElementById("clear-context-btn");
 
     let additionalContext = null;
+    let currentView = 'chat'; // 'chat' or 'settings'
+
+    // View navigation
+    function showChatView() {
+        chatView.style.display = 'flex';
+        settingsView.style.display = 'none';
+        sidebarTitle.textContent = 'Chat';
+        backBtn.style.display = 'none';
+        settingsBtn.style.display = 'block';
+        currentView = 'chat';
+    }
+
+    function showSettingsView() {
+        chatView.style.display = 'none';
+        settingsView.style.display = 'flex';
+        sidebarTitle.textContent = 'Settings';
+        backBtn.style.display = 'block';
+        settingsBtn.style.display = 'none';
+        currentView = 'settings';
+    }
+
+    // Navigation event listeners
+    backBtn.addEventListener("click", showChatView);
+    settingsBtn.addEventListener("click", showSettingsView);
+
+    // Initialize view
+    showChatView();
+
+    // Safe message sending with error handling
+    function safeSendMessage(message, callback) {
+        try {
+            if (chrome.runtime && chrome.runtime.sendMessage) {
+                chrome.runtime.sendMessage(message, (response) => {
+                    if (chrome.runtime.lastError) {
+                        console.log('VibeType Sidebar: Message error (expected):', chrome.runtime.lastError.message);
+                        if (callback) {
+                            callback({ success: false, error: chrome.runtime.lastError.message });
+                        }
+                        return;
+                    }
+                    if (callback) {
+                        callback(response);
+                    }
+                });
+            } else {
+                console.error('VibeType Sidebar: Chrome runtime not available');
+                if (callback) {
+                    callback({ success: false, error: 'Chrome runtime not available' });
+                }
+            }
+        } catch (error) {
+            console.error('VibeType Sidebar: Error sending message:', error);
+            if (callback) {
+                callback({ success: false, error: error.message });
+            }
+        }
+    }
 
     // Load saved settings
-    chrome.storage.sync.get(
-        ["openai_api_key", "scrape_api_url"],
-        function (items) {
-            if (items.openai_api_key) {
-                apiKeyEl.value = items.openai_api_key;
-            }
-            if (items.scrape_api_url) {
-                apiUrlEl.value = items.scrape_api_url;
+    safeSendMessage(
+        { action: "getSettings" },
+        (response) => {
+            if (response && response.success) {
+                if (response.settings.openai_api_key) {
+                    apiKeyEl.value = response.settings.openai_api_key;
+                }
+                if (response.settings.scrape_api_url) {
+                    apiUrlEl.value = response.settings.scrape_api_url;
+                } else {
+                    apiUrlEl.value = "http://127.0.0.1:8000"; // Default value
+                }
+            } else {
+                // Fallback to direct chrome.storage access
+                try {
+                    chrome.storage.sync.get(
+                        ["openai_api_key", "scrape_api_url"],
+                        function (items) {
+                            if (chrome.runtime.lastError) {
+                                console.log('VibeType Sidebar: Storage access error:', chrome.runtime.lastError.message);
+                                return;
+                            }
+                            if (items.openai_api_key) {
+                                apiKeyEl.value = items.openai_api_key;
+                            }
+                            if (items.scrape_api_url) {
+                                apiUrlEl.value = items.scrape_api_url;
+                            } else {
+                                apiUrlEl.value = "http://127.0.0.1:8000";
+                            }
+                        }
+                    );
+                } catch (error) {
+                    console.error('VibeType Sidebar: Error loading settings:', error);
+                }
             }
         }
     );
 
     // Tab switching
+    const tabs = document.querySelectorAll(".tab-link");
+    const contents = document.querySelectorAll(".tab-content");
+
     tabs.forEach((tab) => {
         tab.addEventListener("click", () => {
             tabs.forEach((t) => t.classList.remove("active"));
@@ -52,13 +149,17 @@ document.addEventListener("DOMContentLoaded", function () {
         const apiKey = apiKeyEl.value.trim();
         const apiUrl = apiUrlEl.value.trim();
 
-        chrome.storage.sync.set(
-            { openai_api_key: apiKey, scrape_api_url: apiUrl },
-            () => {
-                settingsStatusEl.textContent = "Settings saved!";
-                setTimeout(() => {
-                    settingsStatusEl.textContent = "";
-                }, 2000);
+        safeSendMessage(
+            { action: "saveSettings", settings: { openai_api_key: apiKey, scrape_api_url: apiUrl } },
+            (response) => {
+                if (response && response.success) {
+                    settingsStatusEl.textContent = "Settings saved!";
+                    setTimeout(() => {
+                        settingsStatusEl.textContent = "";
+                    }, 2000);
+                } else {
+                    settingsStatusEl.textContent = response.error || "Error saving settings";
+                }
             }
         );
     });
@@ -66,17 +167,23 @@ document.addEventListener("DOMContentLoaded", function () {
     // Test API Key
     testApiKeyBtn.addEventListener("click", () => {
         settingsStatusEl.textContent = "Testing API Key...";
-        chrome.runtime.sendMessage({ action: "testApiKey" }, (response) => {
-            settingsStatusEl.textContent = response.message;
-        });
+        safeSendMessage(
+            { action: "testApiKey" },
+            (response) => {
+                settingsStatusEl.textContent = response.message;
+            }
+        );
     });
 
     // Test Scrape API URL
     testApiUrlBtn.addEventListener("click", () => {
         settingsStatusEl.textContent = "Testing Scrape API URL...";
-        chrome.runtime.sendMessage({ action: "testScrapeApi" }, (response) => {
-            settingsStatusEl.textContent = response.message;
-        });
+        safeSendMessage(
+            { action: "testScrapeApi" },
+            (response) => {
+                settingsStatusEl.textContent = response.message;
+            }
+        );
     });
 
     // Handle incoming text selection from the content script
@@ -96,12 +203,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Add tab context
     addContextBtn.addEventListener("click", () => {
-        chrome.runtime.sendMessage({ action: "getAllTabs" }, (response) => {
-            if (response.success) {
-                populateTabList(response.tabs);
-                tabSelectionModal.style.display = "flex";
+        safeSendMessage(
+            { action: "getAllTabs" },
+            (response) => {
+                if (response && response.success) {
+                    populateTabList(response.tabs);
+                    tabSelectionModal.style.display = "flex";
+                }
             }
-        });
+        );
     });
 
     cancelTabSelectionBtn.addEventListener("click", () => {
@@ -121,25 +231,78 @@ document.addEventListener("DOMContentLoaded", function () {
                 <span>${tab.title}</span>
             `;
             tabItem.addEventListener("click", () => {
-                selectTabForContext(tab.id, tab.title);
+                selectTabForContext(tab.id, tab.title, tab.favIconUrl, tab.url);
             });
             tabListEl.appendChild(tabItem);
         });
     }
 
-    function selectTabForContext(tabId, tabTitle) {
+    function selectTabForContext(tabId, tabTitle, tabIcon, tabUrl) {
         tabSelectionModal.style.display = "none";
-        // Store tab info instead of fetching immediately
+        
+        // Store tab info with icon and URL
         additionalContext = {
             sourceTabId: tabId,
             sourceTabTitle: tabTitle,
-            fetched: false, // Mark context as not fetched
+            sourceTabIcon: tabIcon,
+            sourceTabUrl: tabUrl,
+            fetched: false,
         };
+        
+        // Show the context pill with tab info
+        showContextPill(tabTitle, tabIcon, tabUrl);
+        
         addMessage(
             "assistant",
             `Context from "${tabTitle}" is selected. It will be processed with your next message.`
         );
-        // TODO: Add a UI element (a "pill") to show the selected context and allow clearing it
+    }
+
+    function showContextPill(tabTitle, tabIcon, tabUrl) {
+        // Extract hostname from the tab URL
+        let hostname = "Unknown";
+        try {
+            if (tabUrl) {
+                const url = new URL(tabUrl);
+                hostname = url.hostname.replace('www.', ''); // Remove www. prefix for cleaner display
+            }
+        } catch (e) {
+            hostname = "Unknown";
+        }
+        
+        // Create context pill content
+        const contextPill = document.createElement("div");
+        contextPill.className = "tab-context-pill";
+        contextPill.innerHTML = `
+            <div class="context-pill-content">
+                <img src="${tabIcon || 'icons/icon16.png'}" alt="Tab icon" class="context-tab-icon">
+                <div class="context-info">
+                    <div class="context-type">History @ ${hostname}</div>
+                    <div class="context-title">${tabTitle}</div>
+                </div>
+            </div>
+            <button class="clear-tab-context-btn">&times;</button>
+        `;
+        
+        // Insert before the input wrapper
+        const chatInputContainer = document.querySelector('.chat-input-container');
+        const inputWrapper = document.querySelector('.input-wrapper');
+        
+        // Remove any existing context pill
+        const existingPill = document.querySelector('.tab-context-pill');
+        if (existingPill) {
+            existingPill.remove();
+        }
+        
+        // Insert the new pill before the input wrapper
+        chatInputContainer.insertBefore(contextPill, inputWrapper);
+        
+        // Add click handler for the clear button
+        const clearBtn = contextPill.querySelector('.clear-tab-context-btn');
+        clearBtn.addEventListener('click', () => {
+            contextPill.remove();
+            additionalContext = null;
+        });
     }
 
     // Generate response
@@ -152,7 +315,7 @@ document.addEventListener("DOMContentLoaded", function () {
         customPromptEl.value = "";
 
         const sendChatMessage = (context) => {
-            chrome.runtime.sendMessage(
+            safeSendMessage(
                 {
                     action: "chatMessage",
                     message: prompt,
@@ -186,7 +349,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 "assistant",
                 `Searching for relevant context in "${additionalContext.sourceTabTitle}"...`
             );
-            chrome.runtime.sendMessage(
+            safeSendMessage(
                 {
                     action: "enhancedContentExtraction",
                     tabId: additionalContext.sourceTabId,

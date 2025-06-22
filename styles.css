@@ -11,47 +11,61 @@
   --success-color: #28a745;
   --danger-color: #dc3545;
   --font-main: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  
+  /* New minimal color scheme */
+  --toolbar-bg: #000000;
+  --toolbar-text: #ffffff;
+  --toolbar-border: #333333;
+  --toolbar-shadow: rgba(0, 0, 0, 0.3);
 }
 
 /* --- Floating Toolbar --- */
 #web-pilot-toolbar {
   position: absolute;
   z-index: 2147483647;
-  background: var(--dark-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 9999px;
-  /* Pill shape */
-  box-shadow: 0 8px 30px var(--shadow-color);
-  display: none;
-  padding: 5px;
+  background: var(--toolbar-bg);
+  border: 1px solid var(--toolbar-border);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px var(--toolbar-shadow), 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  padding: 0;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+  overflow: hidden;
 }
 
 #web-pilot-toolbar button {
   background: transparent;
-  color: var(--light-text);
+  color: var(--toolbar-text);
   border: none;
-  padding: 8px 16px;
-  margin: 0 2px;
-  border-radius: 9999px;
-  /* Pill shape */
+  border-right: 1px solid var(--toolbar-border);
+  padding: 12px 20px;
+  margin: 0;
   cursor: pointer;
   font-family: var(--font-main);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 500;
   transition: all 0.2s ease;
   white-space: nowrap;
+  min-width: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#web-pilot-toolbar button:last-child {
+  border-right: none;
 }
 
 #web-pilot-toolbar button:hover {
-  background: var(--brand-primary);
-  color: white;
+  background: #333333;
+  color: var(--toolbar-text);
 }
 
 #web-pilot-toolbar button:active {
-  transform: scale(0.95);
+  transform: scale(0.98);
+  background: #444444;
 }
 
 /* --- In-page Suggestion & Confirmation --- */

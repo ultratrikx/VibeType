@@ -8,39 +8,50 @@
     </head>
     <body>
         <div class="sidebar-container">
-            <div class="tabs">
-                <button class="tab-link active" data-tab="chat">Chat</button>
-                <button class="tab-link" data-tab="settings">Settings</button>
+            <!-- Header -->
+            <div class="sidebar-header">
+                <button class="back-btn" id="back-btn">←</button>
+                <h1 class="sidebar-title">Chat</h1>
+                <button class="settings-btn" id="settings-btn">Settings</button>
             </div>
 
-            <div id="chat" class="tab-content active">
+            <!-- Main Chat View -->
+            <div id="chat-view" class="chat-view">
+                <!-- Welcome Card -->
+                <div class="welcome-card">
+                    <h2>Welcome to VibeType</h2>
+                    <p>the only extension you need to make writing things easy... write, edit, improve with AI assistance. that knows you and what your talking about</p>
+                </div>
+
+                <!-- Chat Messages -->
                 <div id="chat-messages" class="chat-messages">
                     <!-- Messages will be appended here -->
                 </div>
-                <div class="chat-input-area">
-                    <div id="original-text-context" class="context-pill">
-                        <p id="original-text"></p>
-                        <button id="clear-context-btn">&times;</button>
-                    </div>
+
+                <!-- Selected Text Context -->
+                <div id="original-text-context" class="context-pill" style="display: none;">
+                    <p id="original-text"></p>
+                    <button id="clear-context-btn">&times;</button>
+                </div>
+
+                <!-- Chat Input -->
+                <div class="chat-input-container">
+                    <div class="input-hint">Type a message to start a conversation</div>
                     <div class="input-wrapper">
                         <textarea
                             id="custom-prompt"
-                            placeholder="Ask how to improve your text..."
+                            placeholder="Send a message..."
                             rows="1"
                         ></textarea>
-                        <button id="generate-btn" title="Generate Response">
-                            &#x27A4;
-                        </button>
+                        <button id="add-context-btn" class="context-btn" title="Add context from another tab">@</button>
+                        <button id="generate-btn" class="send-btn" title="Send Message">↑</button>
                     </div>
-                    <button id="add-context-btn">
-                        + Add Context from Another Tab
-                    </button>
                 </div>
             </div>
 
-            <div id="settings" class="tab-content">
+            <!-- Settings View -->
+            <div id="settings-view" class="settings-view" style="display: none;">
                 <div class="settings-container">
-                    <h3>Settings</h3>
                     <div class="setting">
                         <label for="api-key">OpenAI API Key</label>
                         <div class="input-group">
@@ -67,8 +78,8 @@
                             </button>
                         </div>
                     </div>
-                    <button id="save-settings-btn">Save Settings</button>
-                    <p id="settings-status"></p>
+                    <button id="save-settings-btn" class="save-btn">Save Settings</button>
+                    <p id="settings-status" class="settings-status"></p>
                 </div>
             </div>
         </div>
