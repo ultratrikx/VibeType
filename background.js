@@ -77,6 +77,10 @@ class WebPilotBackground {
                     this.apiKey = request.apiKey;
                     sendResponse({ success: true });
                     break;
+                case "processText": // New handler for the simplified toolbar
+                    this.handleProcessText(request, sender);
+                    sendResponse({ success: true }); // Acknowledge message receipt
+                    break;
                 default:
                     sendResponse({ success: false, error: "Unknown action" });
             }
@@ -818,12 +822,116 @@ Note: Consider the context from these sections to provide more informed and rele
             });
         }
     }
+
+    async handleProcessText(request, sender) {
+        if (!this.apiKey) {
+            chrome.tabs.sendMessage(sender.tab.id, {
+                action: "showSuggestion",
+                suggestion: "Error: OpenAI API key not configured.",
+            });
+            return;
+        }
+
+        const { text, editType } = request;
+        let prompt;
+        const context = {
+            title: sender.tab.title,
+            url: sender.tab.url,
+            domain: new URL(sender.tab.url).hostname,
+        };
+
+        switch (editType) {
+            case "Improve":
+                prompt = this.buildImprovePrompt(text, context);
+                break;
+            case "Rewrite":
+                prompt = this.buildRewritePrompt(text, context);
+                break;
+            case "Elaborate":
+                prompt = this.buildElaboratePrompt(text, context);
+                break;
+            default:
+                console.error("Unknown editType:", editType);
+                return;
+        }
+
+        const response = await this.callOpenAI(prompt, 1);
+        let suggestion = "Error: Could not get a suggestion from the AI.";
+        if (
+            response.success &&
+            response.choices &&
+            response.choices.length > 0
+        ) {
+            suggestion = response.choices[0].message.content.trim();
+        } else {
+            suggestion = response.error || suggestion;
+        }
+
+        // Send the result back to the content script
+        chrome.tabs.sendMessage(sender.tab.id, {
+            action: "showSuggestion",
+            suggestion: suggestion,
+        });
+    }
 }
 
 // listen for clicks on the extension icon
-chrome.action.onClicked.addListener((tab) => {
+chrome.action.onClicked.addListener(async (tab) => {
+    console.log("WebPilot: Extension icon clicked for tab:", tab.id);
     if (tab.id) {
-        chrome.tabs.sendMessage(tab.id, { action: "toggleSidebar" });
+        try {
+            // First, try to check if the tab is accessible
+            await chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                func: () => {
+                    console.log("WebPilot: Content script check successful");
+                    return true;
+                },
+            });
+
+            // Then send the message to toggle the sidebar
+            chrome.tabs.sendMessage(
+                tab.id,
+                { action: "toggleSidebar" },
+                (response) => {
+                    if (chrome.runtime.lastError) {
+                        console.error(
+                            "WebPilot: Error sending message:",
+                            chrome.runtime.lastError
+                        );
+                        // Try to inject the content script if it's not already there
+                        chrome.scripting
+                            .executeScript({
+                                target: { tabId: tab.id },
+                                files: ["content.js"],
+                            })
+                            .then(() => {
+                                console.log(
+                                    "WebPilot: Content script injected, retrying..."
+                                );
+                                setTimeout(() => {
+                                    chrome.tabs.sendMessage(tab.id, {
+                                        action: "toggleSidebar",
+                                    });
+                                }, 500);
+                            })
+                            .catch((err) => {
+                                console.error(
+                                    "WebPilot: Failed to inject content script:",
+                                    err
+                                );
+                            });
+                    } else {
+                        console.log(
+                            "WebPilot: Sidebar toggle message sent successfully",
+                            response
+                        );
+                    }
+                }
+            );
+        } catch (err) {
+            console.error("WebPilot: Cannot access tab:", err);
+        }
     }
 });
 

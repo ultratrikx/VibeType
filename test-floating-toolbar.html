@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Floating Toolbar Test</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                padding: 40px;
+                line-height: 1.6;
+            }
+
+            .test-section {
+                margin: 30px 0;
+                padding: 20px;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                background: #f9f9f9;
+            }
+
+            textarea {
+                width: 100%;
+                min-height: 100px;
+                padding: 12px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 14px;
+                resize: vertical;
+            }
+
+            input[type="text"] {
+                width: 100%;
+                padding: 12px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 14px;
+            }
+
+            .editable-div {
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                padding: 12px;
+                min-height: 80px;
+                background: white;
+                cursor: text;
+            }
+
+            h1,
+            h2 {
+                color: #333;
+            }
+
+            .instructions {
+                background: #e3f2fd;
+                border-left: 4px solid #2196f3;
+                padding: 15px;
+                margin: 20px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>🛠️ Floating Toolbar Test Page</h1>
+
+        <div class="instructions">
+            <h3>Instructions for Testing:</h3>
+            <ul>
+                <li>
+                    <strong>Typing Detection:</strong> Type in any field below,
+                    then pause for 2 seconds. The floating toolbar should
+                    appear.
+                </li>
+                <li>
+                    <strong>Text Selection:</strong> Highlight/select any text
+                    in the fields below. The toolbar should appear immediately.
+                </li>
+                <li>
+                    <strong>Actions:</strong> Click "Elaborate", "Improve", or
+                    "Rewrite" to test the AI functionality.
+                </li>
+                <li>
+                    <strong>Accept/Decline:</strong> After getting a suggestion,
+                    test the accept/decline buttons.
+                </li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h2>📝 Text Area Test</h2>
+            <textarea
+                placeholder="Start typing here... After 2 seconds of inactivity, the floating toolbar should appear. You can also select text to make it appear immediately."
+            >
+This is some sample text that you can select or edit. Try typing something new or highlighting this text to see the floating toolbar in action.</textarea
+            >
+        </div>
+
+        <div class="test-section">
+            <h2>📊 Input Field Test</h2>
+            <input
+                type="text"
+                placeholder="Type in this input field..."
+                value="This input contains some text you can select or modify"
+            />
+        </div>
+
+        <div class="test-section">
+            <h2>✏️ Editable Div Test</h2>
+            <div class="editable-div" contenteditable="true">
+                This is a content-editable div. You can click here to edit this
+                text, select portions of it, or add new content. The floating
+                toolbar should work here as well.
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>📄 Long Text Sample</h2>
+            <textarea style="height: 150px">
+The quick brown fox jumps over the lazy dog. This pangram contains every letter of the alphabet at least once. It's commonly used for testing fonts, keyboards, and other text-related functionality.
+
+You can select any part of this text to trigger the floating toolbar. Try selecting just a sentence, a paragraph, or even individual words. The toolbar should position itself appropriately near your selection.
+
+Additionally, you can add new content here by typing. After you stop typing for about 2 seconds, the floating toolbar should automatically appear, giving you options to improve, rewrite, or elaborate on your text.
+
+Feel free to experiment with different types of selections and edits to test the robustness of the floating toolbar functionality.
+        </textarea
+            >
+        </div>
+
+        <div class="test-section">
+            <h2>🔧 Testing Notes</h2>
+            <ul>
+                <li>
+                    The toolbar should appear above the text element when
+                    there's space, or below it otherwise
+                </li>
+                <li>It should stay within the viewport boundaries</li>
+                <li>
+                    Clicking outside the toolbar should hide it (unless there's
+                    a pending suggestion)
+                </li>
+                <li>
+                    The toolbar should hide when scrolling (unless there's a
+                    pending suggestion)
+                </li>
+                <li>Pressing Escape should hide the toolbar</li>
+                <li>
+                    The suggestion panel should show accept/decline options
+                    after processing text
+                </li>
+            </ul>
+        </div>
+
+        <script>
+            // Add some console logging to help with debugging
+            console.log(
+                "Test page loaded. Make sure the WebPilot extension is enabled!"
+            );
+
+            // Add some visual feedback for interactions
+            document.addEventListener("selectionchange", () => {
+                const selection = window.getSelection();
+                if (selection.toString().trim()) {
+                    console.log(
+                        "Text selected:",
+                        selection.toString().substring(0, 50) + "..."
+                    );
+                }
+            });
+
+            document.addEventListener("input", (e) => {
+                console.log(
+                    "Input detected in:",
+                    e.target.tagName,
+                    e.target.type || "contenteditable"
+                );
+            });
+        </script>
+    </body>
+</html>

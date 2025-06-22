@@ -20,6 +20,7 @@
     opacity: 0;
     transform: translateX(20px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -498,109 +499,109 @@
     border-color: #4a5568;
     color: #e2e8f0;
   }
-  
+
   .webpilot-context-section,
   .webpilot-tab-context-section {
     background: #4a5568;
     border-color: #718096;
   }
-  
+
   .webpilot-context-header,
   .webpilot-tab-context-header {
     color: #e2e8f0;
   }
-  
+
   .webpilot-context-header:hover,
   .webpilot-tab-context-header:hover {
     background: #718096;
   }
-  
+
   .webpilot-context-info,
   .webpilot-tab-context-content {
     background: #2d3748;
     border-color: #718096;
   }
-  
+
   .context-item strong {
     color: #e2e8f0;
   }
-  
+
   .context-item span {
     color: #a0aec0;
   }
-  
+
   #webpilot-tab-selector {
     background: #2d3748;
     border-color: #718096;
     color: #e2e8f0;
   }
-  
+
   #webpilot-tab-selector:focus {
     border-color: #63b3ed;
     box-shadow: 0 0 0 2px rgba(99, 179, 237, 0.25);
   }
-  
+
   .webpilot-load-context-btn,
   .webpilot-clear-context-btn {
     background: #2d3748;
     border-color: #718096;
     color: #e2e8f0;
   }
-  
+
   .webpilot-load-context-btn:hover {
     background: #63b3ed;
     color: white;
     border-color: #63b3ed;
   }
-  
+
   .webpilot-tab-context-display {
     background: #4a5568;
     border-color: #718096;
   }
-  
+
   .webpilot-suggestion {
     background: #4a5568;
     border-color: #718096;
     color: #e2e8f0;
   }
-  
+
   .webpilot-suggestion:hover {
     background: #718096;
     border-color: #a0aec0;
   }
-  
+
   .webpilot-actions {
     background: #4a5568;
     border-color: #718096;
   }
-  
+
   .webpilot-action {
     background: #2d3748;
     border-color: #718096;
     color: #e2e8f0;
   }
-  
+
   .webpilot-action:hover {
     background: #718096;
     border-color: #a0aec0;
   }
-  
+
   .assistant-message .message-content {
     background: #4a5568;
     color: #e2e8f0;
   }
-  
+
   .webpilot-chat-input {
     background: #4a5568;
     border-color: #718096;
   }
-  
+
   #webpilot-chat-input {
     background: #2d3748;
     border-color: #718096;
     color: #e2e8f0;
   }
-  
+
   #webpilot-chat-input:focus {
     border-color: #63b3ed;
     box-shadow: 0 0 0 2px rgba(99, 179, 237, 0.25);
@@ -641,10 +642,13 @@
   width: 380px;
   height: 100vh;
   border: none;
-  box-shadow: -5px 0 15px rgba(0,0,0,0.15);
-  z-index: 2147483647; /* Max z-index */
-  display: none; /* Hidden by default */
-  background-color: white; /* Fallback color */
+  box-shadow: -5px 0 15px rgba(0, 0, 0, 0.15);
+  z-index: 2147483647;
+  /* Max z-index */
+  display: none;
+  /* Hidden by default */
+  background-color: white;
+  /* Fallback color */
   transition: transform 0.3s ease-in-out;
   transform: translateX(0);
 }
@@ -673,4 +677,202 @@
   height: 3px;
   background-color: #ccc;
   border-radius: 2px;
-} 
+}
+
+/* Floating Toolbar Styles */
+#webpilot-floating-toolbar {
+  position: absolute;
+  z-index: 2147483646;
+  /* Just below sidebar */
+  background: white;
+  border: 1px solid #e1e5e9;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  display: none;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  min-width: 280px;
+  max-width: 400px;
+}
+
+#webpilot-floating-toolbar.webpilot-toolbar-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+#webpilot-floating-toolbar.webpilot-toolbar-loading {
+  pointer-events: none;
+}
+
+.webpilot-toolbar-content {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  gap: 8px;
+  position: relative;
+}
+
+.webpilot-toolbar-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.webpilot-toolbar-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.webpilot-toolbar-btn:active {
+  transform: translateY(0);
+}
+
+.webpilot-toolbar-loading .webpilot-toolbar-btn {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.webpilot-btn-icon {
+  font-size: 14px;
+}
+
+.webpilot-btn-text {
+  font-size: 11px;
+}
+
+.webpilot-toolbar-close {
+  background: #f8f9fa;
+  color: #6c757d;
+  border: 1px solid #e9ecef;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  transition: all 0.2s ease;
+  margin-left: auto;
+}
+
+.webpilot-toolbar-close:hover {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.webpilot-suggestion-panel {
+  border-top: 1px solid #e9ecef;
+  padding: 12px;
+  background: #f8f9fa;
+}
+
+.webpilot-suggestion-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.webpilot-suggestion-text {
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #495057;
+  max-height: 120px;
+  overflow-y: auto;
+  word-wrap: break-word;
+}
+
+.webpilot-suggestion-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.webpilot-suggestion-accept,
+.webpilot-suggestion-decline {
+  padding: 6px 16px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid;
+}
+
+.webpilot-suggestion-accept {
+  background: #28a745;
+  color: white;
+  border-color: #28a745;
+}
+
+.webpilot-suggestion-accept:hover {
+  background: #218838;
+  border-color: #1e7e34;
+}
+
+.webpilot-suggestion-decline {
+  background: white;
+  color: #6c757d;
+  border-color: #ced4da;
+}
+
+.webpilot-suggestion-decline:hover {
+  background: #f8f9fa;
+  color: #495057;
+}
+
+/* Loading animation for toolbar */
+.webpilot-toolbar-loading .webpilot-toolbar-content::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #667eea, transparent);
+  animation: webpilot-loading-bar 1.5s infinite;
+}
+
+@keyframes webpilot-loading-bar {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  #webpilot-floating-toolbar {
+    min-width: 260px;
+    max-width: calc(100vw - 40px);
+  }
+
+  .webpilot-toolbar-btn {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  .webpilot-btn-text {
+    display: none;
+  }
+}
